@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { sendBrevoEmail } from "../_shared/brevo.ts";
+import { brandedEmail } from "../_shared/email-branding.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
