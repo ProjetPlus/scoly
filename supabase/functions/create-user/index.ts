@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { sendBrevoEmail } from "../_shared/brevo.ts";
+import { brandedEmail } from "../_shared/email-branding.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -141,6 +143,43 @@ serve(async (req) => {
     }
 
     console.log('User created successfully:', userId);
+
+    // 📧 Email de bienvenue branded (Brevo prioritaire, Resend fallback)
+    try {
+      const siteUrl = Deno.env.get('SITE_URL') || 'https://scoly.ci';
+      const resetUrl = `${siteUrl}/auth/reset-password`;
+      const rolesLabel = (rolesToAssign as string[]).join(', ');
+      const greeting = firstName ? `Bonjour ${firstName},` : 'Bonjour,';
+      const html = brandedEmail({
+        title: 'Bienvenue dans l\'équipe Scoly',
+        preheader: 'Votre compte interne Scoly est prêt',
+        bodyHtml: `
+          <p>${greeting}</p>
+          <p>Un compte <strong>${rolesLabel}</strong> vient d'être créé pour vous sur la plateforme Scoly.</p>
+          <p><strong>Identifiants temporaires :</strong></p>
+          <ul>
+            <li>Email : <strong>${email}</strong></li>
+            <li>Mot de passe temporaire : <strong>${password}</strong></li>
+          </ul>
+          <p style="color:#dc2626;"><strong>⚠️ Important :</strong> changez votre mot de passe dès votre première connexion via le lien ci-dessous.</p>
+        `,
+        ctaText: 'Définir mon mot de passe',
+        ctaUrl: resetUrl,
+        footerExtra: 'Si vous n\'attendiez pas ce message, contactez immédiatement notre équipe.',
+      });
+      await sendBrevoEmail({
+        to: email,
+        subject: '🎓 Bienvenue dans l\'équipe Scoly — vos accès',
+        html,
+        category: 'internal_user_welcome',
+        emailType: 'transactional',
+        dedupeKey: `internal-welcome-${userId}`,
+        metadata: { userId, roles: rolesToAssign },
+      });
+    } catch (mailErr) {
+      console.error('[create-user] welcome email failed (non-blocking):', mailErr);
+    }
+
 
     return new Response(JSON.stringify({ 
       success: true, 
