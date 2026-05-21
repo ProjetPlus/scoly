@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Truck, ShieldCheck, CreditCard, Headphones, GraduationCap, BookOpen, Briefcase, Library, School } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 
