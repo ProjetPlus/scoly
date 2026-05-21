@@ -47,7 +47,6 @@ const Navbar = () => {
     { label: "Boutique", href: "/shop" },
     { label: "Écoles", href: "/ecoles" },
     { label: "Kits", href: "/kits" },
-    { label: "Ressources", href: "/ressources" },
     { label: "Actualités", href: "/actualites" },
     { label: t.nav.about, href: "/about" },
     { label: t.nav.contact, href: "/contact" },

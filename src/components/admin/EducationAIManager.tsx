@@ -154,10 +154,8 @@ const EducationAIManager = () => {
       </div>
 
       <Tabs defaultValue="kits" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList>
           <TabsTrigger value="kits" className="gap-1"><Package size={14} /> Kits IA</TabsTrigger>
-          <TabsTrigger value="resources" className="gap-1"><BookOpen size={14} /> Ressources IA</TabsTrigger>
-          <TabsTrigger value="schools" className="gap-1"><GraduationCap size={14} /> Écoles IA</TabsTrigger>
         </TabsList>
 
         {/* ─── Kit Generation ─── */}
@@ -220,139 +218,6 @@ const EducationAIManager = () => {
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ─── Resource Generation ─── */}
-        <TabsContent value="resources">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><BookOpen className="text-primary" /> Générer une Ressource Éducative</CardTitle>
-              <CardDescription>Créez des exercices, sujets d'examen ou fiches de cours par IA</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div>
-                  <Label>Matière *</Label>
-                  <Select value={resSubject} onValueChange={setResSubject}>
-                    <SelectTrigger><SelectValue placeholder="Matière" /></SelectTrigger>
-                    <SelectContent>
-                      {SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Niveau *</Label>
-                  <Select value={resLevel} onValueChange={setResLevel}>
-                    <SelectTrigger><SelectValue placeholder="Niveau" /></SelectTrigger>
-                    <SelectContent>
-                      {LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Type *</Label>
-                  <Select value={resType} onValueChange={setResType}>
-                    <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
-                    <SelectContent>
-                      {RESOURCE_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-end">
-                  <Button onClick={generateResource} disabled={generatingRes} className="w-full gap-2">
-                    {generatingRes ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                    {generatingRes ? "..." : "Générer"}
-                  </Button>
-                </div>
-              </div>
-
-              {generatedResource && (
-                <div className="mt-6 space-y-4">
-                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-foreground">{generatedResource.title_fr}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">{generatedResource.description_fr}</p>
-                        <div className="flex gap-2 mt-2">
-                          <Badge>{generatedResource.subject}</Badge>
-                          <Badge variant="outline">{generatedResource.grade_level}</Badge>
-                          {generatedResource.difficulty && <Badge variant="secondary">{generatedResource.difficulty}</Badge>}
-                        </div>
-                      </div>
-                      <Button onClick={saveResource} disabled={savingRes} size="sm" className="gap-1 shrink-0">
-                        <Save size={14} />
-                        {savingRes ? "..." : "Sauvegarder"}
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="bg-card border border-border rounded-xl p-4 max-h-96 overflow-y-auto">
-                    <h4 className="font-semibold text-sm text-foreground mb-2 flex items-center gap-1">
-                      <FileText size={14} /> Contenu généré
-                    </h4>
-                    <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                      {generatedResource.content}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ─── School Description ─── */}
-        <TabsContent value="schools">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><GraduationCap className="text-primary" /> Générer une Fiche École</CardTitle>
-              <CardDescription>L'IA crée une description professionnelle pour un établissement</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div>
-                  <Label>Nom de l'école *</Label>
-                  <input
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={schoolName}
-                    onChange={e => setSchoolName(e.target.value)}
-                    placeholder="Ex: Lycée Classique d'Abidjan"
-                  />
-                </div>
-                <div>
-                  <Label>Type</Label>
-                  <Select value={schoolType} onValueChange={setSchoolType}>
-                    <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="primary">Primaire</SelectItem>
-                      <SelectItem value="secondary">Secondaire</SelectItem>
-                      <SelectItem value="both">Primaire & Secondaire</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Ville</Label>
-                  <input
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={schoolCity}
-                    onChange={e => setSchoolCity(e.target.value)}
-                    placeholder="Ex: Abidjan"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button onClick={generateDescription} disabled={generatingDesc} className="w-full gap-2">
-                    {generatingDesc ? <RefreshCw size={14} className="animate-spin" /> : <Wand2 size={14} />}
-                    {generatingDesc ? "..." : "Générer"}
-                  </Button>
-                </div>
-              </div>
-
-              {generatedDesc && (
-                <div className="bg-card border border-border rounded-xl p-4 mt-4">
-                  <h4 className="font-semibold text-sm text-foreground mb-2">Description générée</h4>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{generatedDesc}</p>
                 </div>
               )}
             </CardContent>
