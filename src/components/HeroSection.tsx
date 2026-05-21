@@ -14,6 +14,7 @@ const categoryTiles = [
 
 const HeroSection = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ products: 0 });
 
   useEffect(() => {
