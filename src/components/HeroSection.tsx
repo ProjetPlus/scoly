@@ -33,9 +33,12 @@ const HeroSection = () => {
         {/* Hero band: banner + side promos (Jumia layout) */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
           {/* Main banner */}
-          <Link
-            to="/shop"
-            className="relative block rounded-xl overflow-hidden bg-gradient-hero min-h-[260px] sm:min-h-[340px] lg:min-h-[400px] group"
+          <div
+            role="link"
+            tabIndex={0}
+            onClick={() => navigate("/shop")}
+            onKeyDown={(e) => { if (e.key === "Enter") navigate("/shop"); }}
+            className="relative block rounded-xl overflow-hidden bg-gradient-hero min-h-[260px] sm:min-h-[340px] lg:min-h-[400px] group cursor-pointer"
           >
             <div className="absolute inset-0 opacity-[0.08]" style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z' fill='%23fff'/%3E%3C/svg%3E")`,
@@ -67,7 +70,7 @@ const HeroSection = () => {
                 </Link>
               </div>
             </div>
-          </Link>
+          </div>
 
           {/* Side promos */}
           <div className="hidden lg:flex flex-col gap-4">
