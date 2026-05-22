@@ -204,6 +204,7 @@ const Navbar = () => {
         </div>
 
         {/* Categories bar - Jumia style */}
+        {!isDashboard && (
         <div className="hidden lg:block border-t border-border bg-muted/40">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-1 h-11 overflow-x-auto">
