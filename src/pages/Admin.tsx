@@ -50,6 +50,7 @@ import Footer from "@/components/Footer";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import UserManagement from "@/components/admin/UserManagement";
 import ProductForm from "@/components/admin/ProductForm";
+import BulkProductImport from "@/components/admin/BulkProductImport";
 import AuthorsManagement from "@/components/admin/AuthorsManagement";
 import PublicationsReview from "@/components/admin/PublicationsReview";
 import CouponManagement from "@/components/admin/CouponManagement";
@@ -385,25 +386,28 @@ const ProductsTab = () => {
     <div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <h1 className="text-2xl font-display font-bold text-foreground">Produits</h1>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setEditingProduct(null); }}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground">
-              <Plus size={18} />
-              Ajouter un produit
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingProduct ? "Modifier le produit" : "Ajouter un produit"}</DialogTitle>
-            </DialogHeader>
-            <ProductForm 
-              product={editingProduct}
-              categories={categories}
-              onSubmit={() => { setIsDialogOpen(false); setEditingProduct(null); fetchProducts(); }}
-              onCancel={() => { setIsDialogOpen(false); setEditingProduct(null); }}
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          <BulkProductImport onDone={fetchProducts} />
+          <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setEditingProduct(null); }}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary text-primary-foreground">
+                <Plus size={18} />
+                Ajouter un produit
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{editingProduct ? "Modifier le produit" : "Ajouter un produit"}</DialogTitle>
+              </DialogHeader>
+              <ProductForm 
+                product={editingProduct}
+                categories={categories}
+                onSubmit={() => { setIsDialogOpen(false); setEditingProduct(null); fetchProducts(); }}
+                onCancel={() => { setIsDialogOpen(false); setEditingProduct(null); }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="mb-6">
