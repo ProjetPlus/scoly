@@ -242,7 +242,6 @@ const Navbar = () => {
         </div>
         )}
       </div>
-      </div>
 
       {/* Mobile slide-over menu */}
       {isOpen && (
