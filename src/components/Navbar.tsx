@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Menu,
   X,
@@ -34,6 +34,8 @@ const Navbar = () => {
   const { itemCount: cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isDashboard = /^\/(admin|vendor|delivery|moderator|team|author|account|compte|wishlist)(\/|$)/.test(pathname);
 
   const categories = [
     { label: "Primaire", href: "/shop?category=scoly-primaire" },
@@ -202,6 +204,7 @@ const Navbar = () => {
         </div>
 
         {/* Categories bar - Jumia style */}
+        {!isDashboard && (
         <div className="hidden lg:block border-t border-border bg-muted/40">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-1 h-11 overflow-x-auto">
@@ -237,6 +240,7 @@ const Navbar = () => {
             </div>
           </div>
         </div>
+        )}
       </div>
 
       {/* Mobile slide-over menu */}
