@@ -340,6 +340,9 @@ const SmartKits = () => {
           )}
         </div>
       </section>
+      )}
+
+
 
       {/* Benefits */}
       <section className="py-16 bg-muted/30">
