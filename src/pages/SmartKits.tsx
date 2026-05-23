@@ -39,6 +39,7 @@ const SERIES = [
 const SmartKits = () => {
   const { t } = useLanguage();
   const { addToCart } = useCart();
+  const [mode, setMode] = useState<"buy" | "compose">("buy");
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedSeries, setSelectedSeries] = useState("");
 
