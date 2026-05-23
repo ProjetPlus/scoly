@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Package, Sparkles, GraduationCap, ShoppingCart, ChevronRight, BookOpen, Calculator, Pencil } from "lucide-react";
+import { Package, Sparkles, GraduationCap, ShoppingCart, ChevronRight, BookOpen, Calculator, Pencil, Wand2 } from "lucide-react";
+import KitComposer from "@/components/KitComposer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,6 +39,7 @@ const SERIES = [
 const SmartKits = () => {
   const { t } = useLanguage();
   const { addToCart } = useCart();
+  const [mode, setMode] = useState<"buy" | "compose">("buy");
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedSeries, setSelectedSeries] = useState("");
 
@@ -144,7 +146,35 @@ const SmartKits = () => {
         </div>
       </section>
 
-      {/* Kit Builder */}
+      {/* Mode Switcher */}
+      <section className="pt-8">
+        <div className="container mx-auto px-4 -mt-16 relative z-10 max-w-3xl">
+          <div className="grid grid-cols-2 gap-2 bg-card border border-border rounded-xl p-1.5 shadow-md">
+            <button
+              onClick={() => setMode("buy")}
+              className={`flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition ${mode === "buy" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+            >
+              <ShoppingCart className="w-4 h-4" /> Acheter un kit
+            </button>
+            <button
+              onClick={() => setMode("compose")}
+              className={`flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition ${mode === "compose" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+            >
+              <Wand2 className="w-4 h-4" /> Composer mon kit
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {mode === "compose" && (
+        <section className="py-12">
+          <div className="container mx-auto px-4 max-w-3xl">
+            <KitComposer />
+          </div>
+        </section>
+      )}
+
+      {mode === "buy" && (
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto bg-card rounded-2xl border border-border p-8 -mt-24 relative z-10 shadow-lg">
@@ -310,6 +340,9 @@ const SmartKits = () => {
           )}
         </div>
       </section>
+      )}
+
+
 
       {/* Benefits */}
       <section className="py-16 bg-muted/30">

@@ -150,40 +150,69 @@ const Admin = () => {
     setLoading(false);
   };
 
-  const menuItems = [
-    { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard },
-    { id: "ai_manager", label: "🤖 Module IA", icon: Brain },
-    { id: "stats", label: "Statistiques", icon: BarChart3 },
-    { id: "sharestats", label: "Partages & Analytics", icon: Share2 },
-    { id: "products", label: "Produits", icon: Package },
-    { id: "categories", label: "Catégories", icon: FolderTree },
-    { id: "orders", label: "Commandes", icon: ShoppingBag },
-    { id: "payments", label: "Paiements", icon: DollarSign },
-    { id: "deliveries", label: "Livraisons", icon: Truck },
-    { id: "users", label: "Utilisateurs", icon: Users },
-    { id: "vendors", label: "Vendeurs", icon: Store },
-    { id: "commissions", label: "Commissions", icon: DollarSign },
-    { id: "loyalty", label: "Fidélité", icon: Gift },
-    { id: "promotions_mgmt", label: "Promotions", icon: Tag },
-    { id: "flash_deals", label: "Ventes Flash", icon: Zap },
-    { id: "social_media", label: "Réseaux Sociaux", icon: Share2 },
-    { id: "email_marketing", label: "📧 Email Marketing", icon: Bell },
-    { id: "email_logs", label: "📬 Journaux Email", icon: Bell },
-    { id: "email_analytics", label: "📊 Analytics Campagnes", icon: BarChart3 },
-    { id: "email_monitoring", label: "🛰️ Monitoring Fournisseurs", icon: BarChart3 },
-    { id: "schools", label: "Écoles", icon: GraduationCap },
-    { id: "resources", label: "Ressources Édu", icon: BookOpen },
-    { id: "education_ai", label: "🧠 IA Éducation", icon: Brain },
-    { id: "referrals", label: "Parrainages", icon: UserPlus },
-    { id: "authors", label: "Auteurs", icon: Users },
-    { id: "review", label: "Validation", icon: Eye },
-    { id: "articles", label: "Actualités", icon: FileText },
-    { id: "promotions", label: "Coupons", icon: Tag },
-    { id: "advertisements", label: "Publicités", icon: Bell },
-    { id: "faq", label: "FAQ", icon: HelpCircle },
-    { id: "documentation", label: "Documentation", icon: FileText },
-    { id: "settings", label: "Paramètres", icon: Settings },
+  const menuGroups: Array<{ label: string; items: Array<{ id: string; label: string; icon: any }> }> = [
+    {
+      label: "Vue d'ensemble",
+      items: [
+        { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard },
+        { id: "stats", label: "Statistiques", icon: BarChart3 },
+        { id: "sharestats", label: "Partages & Analytics", icon: Share2 },
+      ],
+    },
+    {
+      label: "Catalogue & Ventes",
+      items: [
+        { id: "products", label: "Produits", icon: Package },
+        { id: "categories", label: "Catégories", icon: FolderTree },
+        { id: "orders", label: "Commandes", icon: ShoppingBag },
+        { id: "payments", label: "Paiements", icon: DollarSign },
+        { id: "deliveries", label: "Livraisons", icon: Truck },
+        { id: "promotions_mgmt", label: "Promotions", icon: Tag },
+        { id: "flash_deals", label: "Ventes Flash", icon: Zap },
+        { id: "promotions", label: "Coupons", icon: Tag },
+      ],
+    },
+    {
+      label: "Utilisateurs & Équipe",
+      items: [
+        { id: "users", label: "Utilisateurs", icon: Users },
+        { id: "vendors", label: "Vendeurs", icon: Store },
+        { id: "commissions", label: "Commissions", icon: DollarSign },
+        { id: "loyalty", label: "Fidélité", icon: Gift },
+        { id: "referrals", label: "Parrainages", icon: UserPlus },
+        { id: "authors", label: "Auteurs", icon: Users },
+      ],
+    },
+    {
+      label: "Contenu & Éducation",
+      items: [
+        { id: "articles", label: "Actualités", icon: FileText },
+        { id: "review", label: "Validation", icon: Eye },
+        { id: "education_ai", label: "🧠 IA Éducation", icon: Brain },
+        { id: "advertisements", label: "Publicités", icon: Bell },
+        { id: "social_media", label: "Réseaux Sociaux", icon: Share2 },
+      ],
+    },
+    {
+      label: "Emails",
+      items: [
+        { id: "email_marketing", label: "📧 Email Marketing", icon: Bell },
+        { id: "email_logs", label: "📬 Journaux Email", icon: Bell },
+        { id: "email_analytics", label: "📊 Analytics Campagnes", icon: BarChart3 },
+        { id: "email_monitoring", label: "🛰️ Monitoring Fournisseurs", icon: BarChart3 },
+      ],
+    },
+    {
+      label: "Système",
+      items: [
+        { id: "ai_manager", label: "🤖 Module IA", icon: Brain },
+        { id: "faq", label: "FAQ", icon: HelpCircle },
+        { id: "documentation", label: "Documentation", icon: FileText },
+        { id: "settings", label: "Paramètres", icon: Settings },
+      ],
+    },
   ];
+  const menuItems = menuGroups.flatMap((g) => g.items);
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -231,20 +260,27 @@ const Admin = () => {
           <div className="p-6">
             <h2 className="text-xl font-display font-bold text-foreground">Administration</h2>
           </div>
-          <nav className="px-4 space-y-1 pb-8">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleTabChange(item.id as TabType)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm ${
-                  activeTab === item.id
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-              >
-                <item.icon size={18} />
-                {item.label}
-              </button>
+          <nav className="px-4 pb-8 space-y-4">
+            {menuGroups.map((group) => (
+              <div key={group.label}>
+                <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">{group.label}</div>
+                <div className="space-y-1">
+                  {group.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleTabChange(item.id as TabType)}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm ${
+                        activeTab === item.id
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      <item.icon size={18} />
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </nav>
         </aside>
@@ -255,20 +291,27 @@ const Admin = () => {
             <SheetHeader className="p-6 border-b border-border">
               <SheetTitle>Administration</SheetTitle>
             </SheetHeader>
-            <nav className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-100px)]">
-              {menuItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleTabChange(item.id as TabType)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm ${
-                    activeTab === item.id
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  <item.icon size={18} />
-                  {item.label}
-                </button>
+            <nav className="p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-100px)]">
+              {menuGroups.map((group) => (
+                <div key={group.label}>
+                  <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">{group.label}</div>
+                  <div className="space-y-1">
+                    {group.items.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleTabChange(item.id as TabType)}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm ${
+                          activeTab === item.id
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        <item.icon size={18} />
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </nav>
           </SheetContent>
