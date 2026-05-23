@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Package, Sparkles, GraduationCap, ShoppingCart, ChevronRight, BookOpen, Calculator, Pencil } from "lucide-react";
+import { Package, Sparkles, GraduationCap, ShoppingCart, ChevronRight, BookOpen, Calculator, Pencil, Wand2 } from "lucide-react";
+import KitComposer from "@/components/KitComposer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
