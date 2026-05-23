@@ -1,1 +1,15 @@
 project_id = "duxbzpsezdhvhprwjwmk"
+
+[auth]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+double_confirm_changes = true
+
+[functions.generate-kit-from-docs]
+verify_jwt = false
+
+[functions.bulk-create-products]
+verify_jwt = false
