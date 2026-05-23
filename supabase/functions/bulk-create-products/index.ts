@@ -177,8 +177,26 @@ Deno.serve(async (req) => {
 
     const extracted = Array.isArray(args.products) ? args.products : [];
 
-    // Insert as drafts
-    const rows = extracted.map((p: any) => ({
+    // ─── Déduplication ───
+    const norm = (s: string) => (s || "").toLowerCase().normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+
+    // 1. Dédup intra-batch (même nom normalisé)
+    const seen = new Set<string>();
+    const uniqueExtracted = extracted.filter((p: any) => {
+      const k = norm(p.name_fr);
+      if (!k || seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+
+    // 2. Dédup contre la base existante
+    const { data: existing } = await supabase.from("products").select("id, name_fr").limit(5000);
+    const existingKeys = new Set((existing || []).map((p: any) => norm(p.name_fr)));
+    const toInsert = uniqueExtracted.filter((p: any) => !existingKeys.has(norm(p.name_fr)));
+    const skipped = extracted.length - toInsert.length;
+
+    const rows = toInsert.map((p: any) => ({
       name_fr: String(p.name_fr || "Produit").slice(0, 255),
       description_fr: String(p.description_fr || ""),
       price: Number(p.estimated_price_fcfa) || 0,
@@ -193,16 +211,11 @@ Deno.serve(async (req) => {
 
     let inserted: any[] = [];
     if (rows.length > 0) {
-      const { data, error } = await supabase
-        .from("products")
-        .insert(rows)
-        .select("id, name_fr");
+      const { data, error } = await supabase.from("products").insert(rows).select("id, name_fr");
       if (error) {
         console.error("Insert error", error);
-        return new Response(
-          JSON.stringify({ error: error.message, extracted }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: error.message, extracted }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       inserted = data || [];
     }
