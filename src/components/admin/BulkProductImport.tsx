@@ -9,8 +9,8 @@ interface Props {
   onDone?: () => void;
 }
 
-const MAX_FILES = 10;
-const MAX_SIZE = 8 * 1024 * 1024; // 8MB per file (base64 inline limit)
+const MAX_FILES = 100;
+const MAX_SIZE = 10 * 1024 * 1024; // 10MB per file
 
 const fileToBase64 = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -32,7 +32,7 @@ const BulkProductImport = ({ onDone }: Props) => {
     const list = Array.from(e.target.files || []);
     const ok = list.filter((f) => {
       if (f.size > MAX_SIZE) {
-        toast.error(`${f.name} dépasse 8 Mo`);
+        toast.error(`${f.name} dépasse 10 Mo`);
         return false;
       }
       return true;
@@ -67,12 +67,13 @@ const BulkProductImport = ({ onDone }: Props) => {
       if ((data as any)?.error) throw new Error((data as any).error);
 
       const count = (data as any)?.count ?? 0;
-      toast.success(`${count} produit(s) créé(s) en brouillon. Éditez-les pour publication.`);
+      const skipped = (data as any)?.skipped ?? 0;
+      toast.success(`${count} produit(s) créé(s) et publié(s).${skipped ? ` ${skipped} doublon(s) ignoré(s).` : ""}`);
       setFiles([]);
       setOpen(false);
       onDone?.();
     } catch (e: any) {
-      toast.error(e?.message || "Échec de l'import IA");
+      toast.error(e?.message || "Échec de la création IA");
     } finally {
       setLoading(false);
     }
@@ -82,18 +83,20 @@ const BulkProductImport = ({ onDone }: Props) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
-          <Sparkles size={16} /> Import IA
+          <Sparkles size={16} /> Créer avec IA
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles size={18} /> Import IA — Produits en lot
+            <Sparkles size={18} /> Création IA — Produits en lot
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Glissez photos, PDF, Word ou PPTX (max {MAX_FILES} fichiers, 8 Mo chacun). L'IA extrait nom, description, prix estimé et crée des produits en brouillon.
+            Déposez de simples photos d'articles, listes scolaires (même manuscrites avec ratures), ou catalogues.
+            L'IA reconnaît automatiquement chaque fourniture, génère titres multilingues, descriptions, prix et publie directement les produits classés par catégorie.
+            <br /><span className="font-medium">Jusqu'à {MAX_FILES} fichiers, 10 Mo chacun.</span>
           </p>
 
           <label className="block border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:bg-muted/40 transition-colors">
@@ -110,7 +113,10 @@ const BulkProductImport = ({ onDone }: Props) => {
           </label>
 
           {files.length > 0 && (
-            <ul className="space-y-1 max-h-40 overflow-y-auto text-sm">
+            <div className="text-xs text-muted-foreground">{files.length} fichier(s) sélectionné(s)</div>
+          )}
+          {files.length > 0 && (
+            <ul className="space-y-1 max-h-48 overflow-y-auto text-sm">
               {files.map((f, i) => (
                 <li
                   key={i}
@@ -137,11 +143,11 @@ const BulkProductImport = ({ onDone }: Props) => {
             <Button onClick={handleImport} disabled={loading || files.length === 0}>
               {loading ? (
                 <>
-                  <Loader2 className="animate-spin mr-1" size={16} /> Analyse...
+                  <Loader2 className="animate-spin mr-1" size={16} /> L'IA analyse...
                 </>
               ) : (
                 <>
-                  <Sparkles size={16} className="mr-1" /> Lancer l'import
+                  <Sparkles size={16} className="mr-1" /> Créer les produits
                 </>
               )}
             </Button>
