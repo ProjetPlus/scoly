@@ -1477,6 +1477,7 @@ export type Database = {
           is_featured: boolean | null
           is_office_supply: boolean | null
           material: string | null
+          metadata: Json
           model: string | null
           name_de: string
           name_en: string
@@ -1515,6 +1516,7 @@ export type Database = {
           is_featured?: boolean | null
           is_office_supply?: boolean | null
           material?: string | null
+          metadata?: Json
           model?: string | null
           name_de: string
           name_en: string
@@ -1553,6 +1555,7 @@ export type Database = {
           is_featured?: boolean | null
           is_office_supply?: boolean | null
           material?: string | null
+          metadata?: Json
           model?: string | null
           name_de?: string
           name_en?: string
