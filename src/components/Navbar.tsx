@@ -278,33 +278,37 @@ const Navbar = () => {
             </div>
 
             <nav className="flex-1 overflow-y-auto py-2">
-              <p className="px-5 pt-3 pb-1 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                Catégories
-              </p>
-              {categories.map((c) => (
-                <Link
-                  key={c.href}
-                  to={c.href}
-                  onClick={() => setIsOpen(false)}
-                  className="block px-5 py-3 text-foreground hover:bg-muted text-sm"
-                >
-                  {c.label}
-                </Link>
-              ))}
+              {!isDashboard && (
+                <>
+                  <p className="px-5 pt-3 pb-1 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    Catégories
+                  </p>
+                  {categories.map((c) => (
+                    <Link
+                      key={c.href}
+                      to={c.href}
+                      onClick={() => setIsOpen(false)}
+                      className="block px-5 py-3 text-foreground hover:bg-muted text-sm"
+                    >
+                      {c.label}
+                    </Link>
+                  ))}
 
-              <p className="px-5 pt-4 pb-1 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                Explorer
-              </p>
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className="block px-5 py-3 text-foreground hover:bg-muted text-sm"
-                >
-                  {item.label}
-                </Link>
-              ))}
+                  <p className="px-5 pt-4 pb-1 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    Explorer
+                  </p>
+                  {navItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className="block px-5 py-3 text-foreground hover:bg-muted text-sm"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </>
+              )}
 
               {user && (
                 <>

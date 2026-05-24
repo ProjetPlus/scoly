@@ -12,12 +12,15 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
+const MAX_FILES = 100;
+const BATCH_SIZE = 6; // images per AI call (Gemini limit/perf)
+
 const EXTRACT_TOOL = {
   type: "function",
   function: {
     name: "extract_products",
     description:
-      "Extrait des produits scolaires/bureautiques depuis les documents/images fournis.",
+      "Extrait des fournitures scolaires/bureautiques à partir d'images (photos d'articles, listes scolaires manuscrites ou imprimées, catalogues). Chaque article visible OU listé devient un produit.",
     parameters: {
       type: "object",
       properties: {
@@ -26,24 +29,27 @@ const EXTRACT_TOOL = {
           items: {
             type: "object",
             properties: {
-              name_fr: { type: "string", description: "Nom du produit en français" },
-              description_fr: { type: "string" },
+              source_file_index: { type: "number", description: "Index du fichier source (0-based) pour associer l'image" },
+              name_fr: { type: "string", description: "Nom commercial clair en français" },
+              name_en: { type: "string" },
+              name_es: { type: "string" },
+              name_de: { type: "string" },
+              description_fr: { type: "string", description: "Description vendeuse 1-2 phrases" },
+              description_en: { type: "string" },
+              description_es: { type: "string" },
+              description_de: { type: "string" },
               category_hint: {
                 type: "string",
-                description:
-                  "Catégorie suggérée: primaire, secondaire, universitaire, bureautique, librairie",
+                enum: ["primaire", "secondaire", "universitaire", "bureautique", "librairie"],
               },
-              characteristics: {
-                type: "array",
-                items: { type: "string" },
-                description: "Caractéristiques principales (marque, taille, etc.)",
-              },
-              estimated_price_fcfa: {
-                type: "number",
-                description: "Prix estimé en FCFA (Côte d'Ivoire)",
-              },
+              education_level: { type: "string", description: "Ex: CP1, CE2, 6ème, Terminale, Universitaire" },
+              subject: { type: "string", description: "Matière si pertinent (Maths, Français...)" },
+              series: { type: "string", description: "Série bac si applicable (A, C, D)" },
+              product_type: { type: "string", description: "Type: cahier, livre, stylo, sac, calculatrice..." },
+              characteristics: { type: "array", items: { type: "string" } },
+              estimated_price_fcfa: { type: "number", description: "Prix marché Côte d'Ivoire en FCFA" },
             },
-            required: ["name_fr", "description_fr", "estimated_price_fcfa"],
+            required: ["source_file_index", "name_fr", "description_fr", "category_hint", "estimated_price_fcfa"],
             additionalProperties: false,
           },
         },
@@ -54,178 +60,164 @@ const EXTRACT_TOOL = {
   },
 };
 
+const SLUG_TO_CAT: Record<string, string> = {
+  primaire: "scoly-primaire",
+  secondaire: "scoly-secondaire",
+  universitaire: "scoly-universite",
+  bureautique: "scoly-bureautique",
+  librairie: "scoly-librairie",
+};
+
+const norm = (s: string) =>
+  (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+
+async function callAI(filesBatch: any[], startIdx: number) {
+  const content: any[] = [
+    {
+      type: "text",
+      text: `Analyse ces ${filesBatch.length} fichier(s). Pour CHAQUE article visible (photo de produit) OU listé (liste scolaire imprimée/manuscrite, même raturée), crée une fiche produit complète. Indique source_file_index = position du fichier (commence à ${startIdx}). Génère noms/descriptions multilingues (FR/EN/ES/DE) et un prix réaliste en FCFA (marché ivoirien). Sois exhaustif: liste de 30 articles = 30 produits.`,
+    },
+  ];
+  filesBatch.forEach((f) => {
+    content.push({
+      type: "image_url",
+      image_url: { url: `data:${f.mime};base64,${f.dataBase64}` },
+    });
+  });
+
+  const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-pro",
+      messages: [
+        { role: "system", content: "Tu es un expert e-commerce scolaire ivoirien. Tu lis aussi bien les manuscrits que les imprimés. Tu crées des fiches produits prêtes à publier." },
+        { role: "user", content },
+      ],
+      tools: [EXTRACT_TOOL],
+      tool_choice: { type: "function", function: { name: "extract_products" } },
+    }),
+  });
+
+  if (!resp.ok) {
+    const t = await resp.text();
+    console.error("AI error", resp.status, t);
+    const err: any = new Error("AI gateway error");
+    err.status = resp.status;
+    throw err;
+  }
+  const ai = await resp.json();
+  const toolCall = ai.choices?.[0]?.message?.tool_calls?.[0];
+  const args = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : { products: [] };
+  return Array.isArray(args.products) ? args.products : [];
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!authHeader) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const userClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
-    const {
-      data: { user },
-    } = await userClient.auth.getUser();
+    const { data: { user } } = await userClient.auth.getUser();
+    if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+    if (!isAdmin) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { data: isAdmin } = await supabase.rpc("has_role", {
-      _user_id: user.id,
-      _role: "admin",
-    });
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { files } = await req.json(); // [{ name, mime, dataBase64 }]
+    const { files } = await req.json();
     if (!Array.isArray(files) || files.length === 0) {
-      return new Response(JSON.stringify({ error: "No files" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "No files" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    const usedFiles = files.slice(0, MAX_FILES);
 
-    // Build multimodal content for Gemini via Lovable AI Gateway
-    const content: any[] = [
-      {
-        type: "text",
-        text:
-          "Analyse ces fichiers (catalogues, photos, listes) et extrais tous les produits scolaires/bureautiques identifiables. Pour chacun : nom en français, description courte, catégorie suggérée, caractéristiques, prix estimé en FCFA (marché ivoirien). Utilise l'outil extract_products.",
-      },
-    ];
-
-    for (const f of files.slice(0, 10)) {
-      if (f.mime?.startsWith("image/")) {
-        content.push({
-          type: "image_url",
-          image_url: { url: `data:${f.mime};base64,${f.dataBase64}` },
-        });
-      } else {
-        // PDFs and docs as file
-        content.push({
-          type: "image_url",
-          image_url: { url: `data:${f.mime};base64,${f.dataBase64}` },
-        });
+    // Process in batches
+    const allExtracted: any[] = [];
+    for (let i = 0; i < usedFiles.length; i += BATCH_SIZE) {
+      const batch = usedFiles.slice(i, i + BATCH_SIZE);
+      try {
+        const partial = await callAI(batch, i);
+        allExtracted.push(...partial);
+      } catch (e: any) {
+        if (e.status === 429) return new Response(JSON.stringify({ error: "Limite IA atteinte, réessayez plus tard." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (e.status === 402) return new Response(JSON.stringify({ error: "Crédits IA épuisés." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        throw e;
       }
     }
 
-    const aiResp = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-pro",
-          messages: [
-            {
-              role: "system",
-              content:
-                "Tu es un expert e-commerce scolaire ivoirien. Tu extrais des fiches produits structurées.",
-            },
-            { role: "user", content },
-          ],
-          tools: [EXTRACT_TOOL],
-          tool_choice: { type: "function", function: { name: "extract_products" } },
-        }),
-      }
-    );
+    // Upload source images to storage and map index -> public URL
+    const fileUrls: (string | null)[] = await Promise.all(usedFiles.map(async (f: any, idx: number) => {
+      if (!f.mime?.startsWith("image/")) return null;
+      try {
+        const bytes = Uint8Array.from(atob(f.dataBase64), c => c.charCodeAt(0));
+        const ext = (f.mime.split("/")[1] || "jpg").replace("jpeg", "jpg");
+        const path = `ai-imports/${user.id}/${Date.now()}-${idx}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("product-images").upload(path, bytes, { contentType: f.mime, upsert: true });
+        if (upErr) { console.error("upload err", upErr); return null; }
+        const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(path);
+        return publicUrl;
+      } catch (e) { console.error("upload exception", e); return null; }
+    }));
 
-    if (!aiResp.ok) {
-      const t = await aiResp.text();
-      console.error("AI error", aiResp.status, t);
-      if (aiResp.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Limite IA atteinte, réessayez plus tard." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (aiResp.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Crédits IA épuisés. Rechargez votre workspace." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Load categories
+    const { data: cats } = await supabase.from("categories").select("id, slug");
+    const catBySlug = new Map((cats || []).map((c: any) => [c.slug, c.id]));
 
-    const ai = await aiResp.json();
-    const toolCall = ai.choices?.[0]?.message?.tool_calls?.[0];
-    const args = toolCall?.function?.arguments
-      ? JSON.parse(toolCall.function.arguments)
-      : { products: [] };
-
-    const extracted = Array.isArray(args.products) ? args.products : [];
-
-    // ─── Déduplication ───
-    const norm = (s: string) => (s || "").toLowerCase().normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
-
-    const cleanText = (value: unknown, fallback = "") => {
-      const text = typeof value === "string" ? value.trim() : "";
-      return text || fallback;
-    };
-
-    const clampName = (value: unknown, fallback: string) =>
-      cleanText(value, fallback).slice(0, 255);
-
-    // 1. Dédup intra-batch (même nom normalisé)
+    // Dedup intra-batch + against DB
     const seen = new Set<string>();
-    const uniqueExtracted = extracted.filter((p: any) => {
+    const uniqueExtracted = allExtracted.filter((p: any) => {
       const k = norm(p.name_fr);
       if (!k || seen.has(k)) return false;
       seen.add(k);
       return true;
     });
-
-    // 2. Dédup contre la base existante
-    const { data: existing } = await supabase.from("products").select("id, name_fr").limit(5000);
+    const { data: existing } = await supabase.from("products").select("name_fr").limit(5000);
     const existingKeys = new Set((existing || []).map((p: any) => norm(p.name_fr)));
     const toInsert = uniqueExtracted.filter((p: any) => !existingKeys.has(norm(p.name_fr)));
-    const skipped = extracted.length - toInsert.length;
+    const skipped = allExtracted.length - toInsert.length;
+
+    const clean = (v: any, fb = "") => (typeof v === "string" && v.trim()) ? v.trim() : fb;
+    const clamp = (v: any, fb: string) => clean(v, fb).slice(0, 255);
 
     const rows = toInsert.map((p: any) => {
-      const baseName = clampName(p.name_fr, "Produit scolaire");
-      const baseDescription = cleanText(p.description_fr);
+      const baseName = clamp(p.name_fr, "Produit scolaire");
+      const baseDesc = clean(p.description_fr);
+      const slug = SLUG_TO_CAT[p.category_hint] || "scoly-primaire";
+      const categoryId = catBySlug.get(slug) || null;
+      const srcIdx = typeof p.source_file_index === "number" ? p.source_file_index : -1;
+      const imageUrl = srcIdx >= 0 && srcIdx < fileUrls.length ? fileUrls[srcIdx] : null;
 
-      return {
+      const row: any = {
         name_fr: baseName,
-        name_en: clampName(p.name_en, baseName),
-        name_de: clampName(p.name_de, baseName),
-        name_es: clampName(p.name_es, baseName),
-        description_fr: baseDescription,
-        description_en: cleanText(p.description_en, baseDescription),
-        description_de: cleanText(p.description_de, baseDescription),
-        description_es: cleanText(p.description_es, baseDescription),
+        name_en: clamp(p.name_en, baseName),
+        name_de: clamp(p.name_de, baseName),
+        name_es: clamp(p.name_es, baseName),
+        description_fr: baseDesc,
+        description_en: clean(p.description_en, baseDesc),
+        description_de: clean(p.description_de, baseDesc),
+        description_es: clean(p.description_es, baseDesc),
         price: Number(p.estimated_price_fcfa) || 0,
-        stock: 0,
-        is_active: false,
+        stock: 10,
+        is_active: true,
+        category_id: categoryId,
+        image_url: imageUrl,
         metadata: {
           ai_generated: true,
           characteristics: Array.isArray(p.characteristics) ? p.characteristics : [],
           category_hint: p.category_hint || null,
+          product_type: p.product_type || null,
         },
       };
+
+      // Optional fields if columns exist
+      if (p.education_level) row.education_level = String(p.education_level).slice(0, 50);
+      if (p.subject) row.subject = String(p.subject).slice(0, 100);
+
+      return row;
     });
 
     let inserted: any[] = [];
@@ -233,7 +225,7 @@ Deno.serve(async (req) => {
       const { data, error } = await supabase.from("products").insert(rows).select("id, name_fr");
       if (error) {
         console.error("Insert error", error);
-        return new Response(JSON.stringify({ error: error.message, extracted }),
+        return new Response(JSON.stringify({ error: error.message, extracted: allExtracted }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       inserted = data || [];
