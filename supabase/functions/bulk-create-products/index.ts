@@ -181,6 +181,14 @@ Deno.serve(async (req) => {
     const norm = (s: string) => (s || "").toLowerCase().normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 
+    const cleanText = (value: unknown, fallback = "") => {
+      const text = typeof value === "string" ? value.trim() : "";
+      return text || fallback;
+    };
+
+    const clampName = (value: unknown, fallback: string) =>
+      cleanText(value, fallback).slice(0, 255);
+
     // 1. Dédup intra-batch (même nom normalisé)
     const seen = new Set<string>();
     const uniqueExtracted = extracted.filter((p: any) => {
@@ -196,18 +204,29 @@ Deno.serve(async (req) => {
     const toInsert = uniqueExtracted.filter((p: any) => !existingKeys.has(norm(p.name_fr)));
     const skipped = extracted.length - toInsert.length;
 
-    const rows = toInsert.map((p: any) => ({
-      name_fr: String(p.name_fr || "Produit").slice(0, 255),
-      description_fr: String(p.description_fr || ""),
-      price: Number(p.estimated_price_fcfa) || 0,
-      stock: 0,
-      is_active: false,
-      metadata: {
-        ai_generated: true,
-        characteristics: p.characteristics || [],
-        category_hint: p.category_hint || null,
-      },
-    }));
+    const rows = toInsert.map((p: any) => {
+      const baseName = clampName(p.name_fr, "Produit scolaire");
+      const baseDescription = cleanText(p.description_fr);
+
+      return {
+        name_fr: baseName,
+        name_en: clampName(p.name_en, baseName),
+        name_de: clampName(p.name_de, baseName),
+        name_es: clampName(p.name_es, baseName),
+        description_fr: baseDescription,
+        description_en: cleanText(p.description_en, baseDescription),
+        description_de: cleanText(p.description_de, baseDescription),
+        description_es: cleanText(p.description_es, baseDescription),
+        price: Number(p.estimated_price_fcfa) || 0,
+        stock: 0,
+        is_active: false,
+        metadata: {
+          ai_generated: true,
+          characteristics: Array.isArray(p.characteristics) ? p.characteristics : [],
+          category_hint: p.category_hint || null,
+        },
+      };
+    });
 
     let inserted: any[] = [];
     if (rows.length > 0) {
