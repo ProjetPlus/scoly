@@ -231,10 +231,21 @@ const KitComposer = () => {
             ))}
           </div>
 
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => { setKit(null); setFiles([]); }} className="flex-1">Recommencer</Button>
-            <Button onClick={addAll} className="flex-1 gap-2"><ShoppingCart className="w-4 h-4" /> Tout ajouter au panier</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => { setKit(null); setFiles([]); setSavedKitId(null); }} className="flex-1 min-w-[140px]">Recommencer</Button>
+            <Button onClick={addAll} className="flex-1 min-w-[160px] gap-2"><ShoppingCart className="w-4 h-4" /> Ajouter au panier</Button>
+            {isAdmin && (
+              <>
+                <Button variant="secondary" disabled={saving} onClick={() => saveKit(false)} className="flex-1 min-w-[160px] gap-2">
+                  <Save className="w-4 h-4" /> {saving ? "..." : "Enregistrer brouillon"}
+                </Button>
+                <Button variant="default" disabled={saving} onClick={() => saveKit(true)} className="flex-1 min-w-[160px] gap-2">
+                  <Send className="w-4 h-4" /> {saving ? "..." : "Publier au catalogue"}
+                </Button>
+              </>
+            )}
           </div>
+
         </div>
       )}
     </div>
