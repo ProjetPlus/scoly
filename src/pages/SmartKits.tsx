@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { Package, Sparkles, GraduationCap, ShoppingCart, ChevronRight, BookOpen, Calculator, Pencil, Wand2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Package, Sparkles, GraduationCap, ShoppingCart, BookOpen, Calculator, Pencil, Wand2, Search } from "lucide-react";
 import KitComposer from "@/components/KitComposer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -12,6 +13,7 @@ import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+
 import { toast } from "sonner";
 
 const LEVELS = [
@@ -40,38 +42,52 @@ const SmartKits = () => {
   const { t } = useLanguage();
   const { addToCart } = useCart();
   const [mode, setMode] = useState<"buy" | "compose">("buy");
-  const [selectedLevel, setSelectedLevel] = useState("");
-  const [selectedSeries, setSelectedSeries] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState<string>("all");
+  const [selectedSeries, setSelectedSeries] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const showSeries = ["2nde", "1ere", "tle"].includes(selectedLevel);
 
-  const { data: kits = [], isLoading } = useQuery({
-    queryKey: ["smart-kits", selectedLevel, selectedSeries],
+  // Load ALL published kits by default
+  const { data: allKits = [], isLoading } = useQuery({
+    queryKey: ["smart-kits-all"],
     queryFn: async () => {
-      if (!selectedLevel) return [];
-      
-      let query = supabase
+      const { data, error } = await supabase
         .from("smart_kits")
         .select("*, smart_kit_items(*, products(*))")
-        .eq("grade_level", selectedLevel)
-        .eq("is_active", true);
-      
-      if (showSeries && selectedSeries) {
-        query = query.eq("series", selectedSeries);
-      }
-      
-      const { data, error } = await query;
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
-    enabled: !!selectedLevel,
   });
 
-  // Fallback: products matching education_level
+  const kits = useMemo(() => {
+    let result = allKits;
+    if (selectedLevel !== "all") {
+      result = result.filter((k: any) => k.grade_level === selectedLevel);
+    }
+    if (showSeries && selectedSeries !== "all") {
+      result = result.filter((k: any) => k.series === selectedSeries);
+    }
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter((k: any) =>
+        (k.name || "").toLowerCase().includes(q) ||
+        (k.description || "").toLowerCase().includes(q) ||
+        (k.smart_kit_items || []).some((it: any) =>
+          (it.item_name || it.products?.name_fr || "").toLowerCase().includes(q)
+        )
+      );
+    }
+    return result;
+  }, [allKits, selectedLevel, selectedSeries, showSeries, searchTerm]);
+
+  // Fallback: products matching education_level when no kits
   const { data: suggestedProducts = [] } = useQuery({
     queryKey: ["suggested-products", selectedLevel],
     queryFn: async () => {
-      if (!selectedLevel) return [];
+      if (selectedLevel === "all") return [];
       const { data, error } = await supabase
         .from("products")
         .select("*")
@@ -81,8 +97,9 @@ const SmartKits = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!selectedLevel && kits.length === 0,
+    enabled: selectedLevel !== "all" && kits.length === 0 && !isLoading,
   });
+
 
   const handleAddKitToCart = async (kit: any) => {
     const items = kit.smart_kit_items || [];
