@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { Package, Sparkles, GraduationCap, ShoppingCart, ChevronRight, BookOpen, Calculator, Pencil, Wand2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Package, Sparkles, GraduationCap, ShoppingCart, BookOpen, Calculator, Pencil, Wand2, Search } from "lucide-react";
 import KitComposer from "@/components/KitComposer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -12,6 +13,7 @@ import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+
 import { toast } from "sonner";
 
 const LEVELS = [
@@ -40,38 +42,52 @@ const SmartKits = () => {
   const { t } = useLanguage();
   const { addToCart } = useCart();
   const [mode, setMode] = useState<"buy" | "compose">("buy");
-  const [selectedLevel, setSelectedLevel] = useState("");
-  const [selectedSeries, setSelectedSeries] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState<string>("all");
+  const [selectedSeries, setSelectedSeries] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const showSeries = ["2nde", "1ere", "tle"].includes(selectedLevel);
 
-  const { data: kits = [], isLoading } = useQuery({
-    queryKey: ["smart-kits", selectedLevel, selectedSeries],
+  // Load ALL published kits by default
+  const { data: allKits = [], isLoading } = useQuery({
+    queryKey: ["smart-kits-all"],
     queryFn: async () => {
-      if (!selectedLevel) return [];
-      
-      let query = supabase
+      const { data, error } = await supabase
         .from("smart_kits")
         .select("*, smart_kit_items(*, products(*))")
-        .eq("grade_level", selectedLevel)
-        .eq("is_active", true);
-      
-      if (showSeries && selectedSeries) {
-        query = query.eq("series", selectedSeries);
-      }
-      
-      const { data, error } = await query;
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
-    enabled: !!selectedLevel,
   });
 
-  // Fallback: products matching education_level
+  const kits = useMemo(() => {
+    let result = allKits;
+    if (selectedLevel !== "all") {
+      result = result.filter((k: any) => k.grade_level === selectedLevel);
+    }
+    if (showSeries && selectedSeries !== "all") {
+      result = result.filter((k: any) => k.series === selectedSeries);
+    }
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter((k: any) =>
+        (k.name || "").toLowerCase().includes(q) ||
+        (k.description || "").toLowerCase().includes(q) ||
+        (k.smart_kit_items || []).some((it: any) =>
+          (it.item_name || it.products?.name_fr || "").toLowerCase().includes(q)
+        )
+      );
+    }
+    return result;
+  }, [allKits, selectedLevel, selectedSeries, showSeries, searchTerm]);
+
+  // Fallback: products matching education_level when no kits
   const { data: suggestedProducts = [] } = useQuery({
     queryKey: ["suggested-products", selectedLevel],
     queryFn: async () => {
-      if (!selectedLevel) return [];
+      if (selectedLevel === "all") return [];
       const { data, error } = await supabase
         .from("products")
         .select("*")
@@ -81,8 +97,9 @@ const SmartKits = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!selectedLevel && kits.length === 0,
+    enabled: selectedLevel !== "all" && kits.length === 0 && !isLoading,
   });
+
 
   const handleAddKitToCart = async (kit: any) => {
     const items = kit.smart_kit_items || [];
@@ -177,22 +194,38 @@ const SmartKits = () => {
       {mode === "buy" && (
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto bg-card rounded-2xl border border-border p-8 -mt-24 relative z-10 shadow-lg">
+          <div className="max-w-3xl mx-auto bg-card rounded-2xl border border-border p-6 md:p-8 -mt-24 relative z-10 shadow-lg">
             <h2 className="text-xl font-display font-bold text-foreground mb-6 flex items-center gap-2">
               <GraduationCap className="w-6 h-6 text-primary" />
-              Composez votre kit
+              Trouvez votre kit
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-3">
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Rechercher
+                </label>
+                <div className="relative">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher un kit, une matière, un article…"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="text-sm font-medium text-foreground mb-2 block">
                   Niveau / Classe
                 </label>
                 <Select value={selectedLevel} onValueChange={setSelectedLevel}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionnez le niveau" />
+                    <SelectValue placeholder="Tous les niveaux" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all">Tous les niveaux</SelectItem>
                     {Object.entries(
                       LEVELS.reduce((acc, l) => {
                         (acc[l.cycle] = acc[l.cycle] || []).push(l);
@@ -219,9 +252,10 @@ const SmartKits = () => {
                   </label>
                   <Select value={selectedSeries} onValueChange={setSelectedSeries}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionnez la série" />
+                      <SelectValue placeholder="Toutes séries" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="all">Toutes séries</SelectItem>
                       {SERIES.map((s) => (
                         <SelectItem key={s.value} value={s.value}>
                           {s.label}
@@ -234,110 +268,112 @@ const SmartKits = () => {
             </div>
           </div>
 
-          {/* Results */}
-          {selectedLevel && (
-            <div className="mt-12">
-              {isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                  {[...Array(2)].map((_, i) => (
-                    <div key={i} className="bg-card rounded-xl border border-border p-6 animate-pulse">
-                      <div className="h-6 bg-muted rounded w-3/4 mb-4" />
-                      <div className="space-y-2">
-                        {[...Array(5)].map((_, j) => (
-                          <div key={j} className="h-4 bg-muted rounded w-full" />
+          {/* Results — always shown */}
+          <div className="mt-12">
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="bg-card rounded-xl border border-border p-6 animate-pulse">
+                    <div className="h-6 bg-muted rounded w-3/4 mb-4" />
+                    <div className="space-y-2">
+                      {[...Array(5)].map((_, j) => (
+                        <div key={j} className="h-4 bg-muted rounded w-full" />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : kits.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                {kits.map((kit: any) => (
+                  <motion.div
+                    key={kit.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-card rounded-xl border border-border overflow-hidden"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-4 gap-3">
+                        <div className="min-w-0">
+                          <h3 className="text-lg font-bold text-foreground truncate">{kit.name}</h3>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {kit.grade_level && <Badge variant="outline" className="text-[10px]">{kit.grade_level}</Badge>}
+                            {kit.series && <Badge variant="outline" className="text-[10px]">Série {kit.series}</Badge>}
+                          </div>
+                          {kit.description && (
+                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{kit.description}</p>
+                          )}
+                        </div>
+                        <Badge variant="secondary" className="shrink-0">
+                          {(kit.smart_kit_items || []).length} articles
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-2 mb-6 max-h-48 overflow-y-auto">
+                        {(kit.smart_kit_items || []).map((item: any, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0">
+                            <span className="text-foreground flex items-center gap-2 min-w-0">
+                              <BookOpen className="w-3 h-3 text-muted-foreground shrink-0" />
+                              <span className="truncate">{item.products?.name_fr || item.item_name || "Produit"}</span>
+                              {item.quantity > 1 && <Badge variant="outline" className="text-xs shrink-0">x{item.quantity}</Badge>}
+                            </span>
+                            <span className="text-muted-foreground shrink-0 ml-2">
+                              {item.products ? formatPrice((item.products.price || 0) * (item.quantity || 1)) : "—"}
+                            </span>
+                          </div>
                         ))}
                       </div>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-border gap-2">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Total</p>
+                          <p className="text-xl font-bold text-primary">{formatPrice(totalKitPrice(kit))}</p>
+                        </div>
+                        <Button variant="hero" onClick={() => handleAddKitToCart(kit)}>
+                          <ShoppingCart className="w-4 h-4 mr-1" />
+                          Ajouter au panier
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : suggestedProducts.length > 0 ? (
+              <div className="max-w-4xl mx-auto">
+                <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-secondary" />
+                  Suggestions pour {LEVELS.find((l) => l.value === selectedLevel)?.label}
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {suggestedProducts.map((product: any) => (
+                    <div key={product.id} className="bg-card rounded-xl border border-border p-4">
+                      <h4 className="text-sm font-medium text-foreground mb-2 line-clamp-2">{product.name_fr}</h4>
+                      <p className="text-primary font-bold">{formatPrice(product.price)}</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full mt-2"
+                        onClick={() => addToCart(product.id, 1)}
+                      >
+                        <ShoppingCart className="w-3 h-3 mr-1" /> Ajouter
+                      </Button>
                     </div>
                   ))}
                 </div>
-              ) : kits.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                  {kits.map((kit: any) => (
-                    <motion.div
-                      key={kit.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-card rounded-xl border border-border overflow-hidden"
-                    >
-                      <div className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <h3 className="text-lg font-bold text-foreground">{kit.name}</h3>
-                            {kit.description && (
-                              <p className="text-sm text-muted-foreground mt-1">{kit.description}</p>
-                            )}
-                          </div>
-                          <Badge variant="secondary">
-                            {(kit.smart_kit_items || []).length} articles
-                          </Badge>
-                        </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-bold text-foreground mb-2">
+                  Aucun kit ne correspond à votre recherche
+                </h3>
+                <p className="text-muted-foreground">
+                  Essayez d'élargir les filtres ou composez votre propre kit ci-dessus.
+                </p>
+              </div>
+            )}
+          </div>
 
-                        <div className="space-y-2 mb-6">
-                          {(kit.smart_kit_items || []).map((item: any, idx: number) => (
-                            <div key={idx} className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0">
-                              <span className="text-foreground flex items-center gap-2">
-                                <BookOpen className="w-3 h-3 text-muted-foreground" />
-                                {item.products?.name_fr || "Produit"}
-                                {item.quantity > 1 && <Badge variant="outline" className="text-xs">x{item.quantity}</Badge>}
-                              </span>
-                              <span className="text-muted-foreground">
-                                {item.products ? formatPrice(item.products.price * (item.quantity || 1)) : "—"}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="flex items-center justify-between pt-4 border-t border-border">
-                          <div>
-                            <p className="text-xs text-muted-foreground">Total du kit</p>
-                            <p className="text-xl font-bold text-primary">{formatPrice(totalKitPrice(kit))}</p>
-                          </div>
-                          <Button variant="hero" onClick={() => handleAddKitToCart(kit)}>
-                            <ShoppingCart className="w-4 h-4 mr-1" />
-                            Ajouter tout au panier
-                          </Button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : suggestedProducts.length > 0 ? (
-                <div className="max-w-4xl mx-auto">
-                  <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-secondary" />
-                    Suggestions pour {LEVELS.find((l) => l.value === selectedLevel)?.label}
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {suggestedProducts.map((product: any) => (
-                      <div key={product.id} className="bg-card rounded-xl border border-border p-4">
-                        <h4 className="text-sm font-medium text-foreground mb-2 line-clamp-2">{product.name_fr}</h4>
-                        <p className="text-primary font-bold">{formatPrice(product.price)}</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full mt-2"
-                          onClick={() => addToCart(product.id, 1)}
-                        >
-                          <ShoppingCart className="w-3 h-3 mr-1" /> Ajouter
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Package className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-bold text-foreground mb-2">
-                    Pas encore de kit pour ce niveau
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Nos kits sont en cours de préparation. Consultez notre{" "}
-                    <a href="/shop" className="text-primary underline">boutique</a> en attendant.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </section>
       )}

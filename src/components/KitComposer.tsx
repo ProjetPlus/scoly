@@ -1,11 +1,13 @@
 import { useRef, useState } from "react";
-import { Upload, Wand2, RefreshCw, ShoppingCart, X, Sparkles } from "lucide-react";
+import { Upload, Wand2, RefreshCw, ShoppingCart, X, Sparkles, Save, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
 
 interface KitItem {
   item_name: string;
@@ -24,17 +26,21 @@ interface GeneratedKit {
   items: KitItem[];
 }
 
-const MAX_FILES = 5;
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_FILES = 10;
+const MAX_BYTES = 10 * 1024 * 1024;
 
 const KitComposer = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [level, setLevel] = useState("");
   const [series, setSeries] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedKitId, setSavedKitId] = useState<string | null>(null);
   const [kit, setKit] = useState<GeneratedKit | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { addToCart } = useCart();
+  const { isAdmin } = useAuth();
+
 
   const onPick = (list: FileList | null) => {
     if (!list) return;
@@ -94,6 +100,66 @@ const KitComposer = () => {
     if (added > 0) toast.success(`${added} article(s) ajouté(s) au panier`);
     else toast.info("Aucun article du kit n'est encore au catalogue. Notre équipe sera notifiée.");
   };
+
+  const saveKit = async (publish: boolean) => {
+    if (!kit) return;
+    setSaving(true);
+    try {
+      const total = kit.items.reduce((s, i) => s + (i.estimated_price || 0) * (i.quantity || 1), 0);
+      let kitId = savedKitId;
+      if (kitId) {
+        const { error } = await supabase
+          .from("smart_kits")
+          .update({
+            name: kit.kit_name,
+            grade_level: kit.grade_level,
+            series: kit.series,
+            description: kit.description,
+            total_price: total,
+            is_active: publish,
+          })
+          .eq("id", kitId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from("smart_kits")
+          .insert({
+            name: kit.kit_name,
+            grade_level: kit.grade_level,
+            series: kit.series,
+            description: kit.description,
+            total_price: total,
+            is_active: publish,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        kitId = data.id;
+        setSavedKitId(kitId);
+      }
+
+      // Replace items
+      await supabase.from("smart_kit_items").delete().eq("kit_id", kitId);
+      const itemRows = kit.items.map((it, idx) => ({
+        kit_id: kitId,
+        product_id: it.product_id,
+        item_name: it.item_name,
+        quantity: it.quantity || 1,
+        is_required: it.is_required ?? true,
+        sort_order: idx,
+      }));
+      if (itemRows.length > 0) {
+        const { error: itemsErr } = await supabase.from("smart_kit_items").insert(itemRows);
+        if (itemsErr) throw itemsErr;
+      }
+      toast.success(publish ? "Kit publié au catalogue 🎉" : "Brouillon enregistré");
+    } catch (e: any) {
+      toast.error(e.message || "Échec de l'enregistrement");
+    } finally {
+      setSaving(false);
+    }
+  };
+
 
   return (
     <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm">
@@ -165,10 +231,21 @@ const KitComposer = () => {
             ))}
           </div>
 
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => { setKit(null); setFiles([]); }} className="flex-1">Recommencer</Button>
-            <Button onClick={addAll} className="flex-1 gap-2"><ShoppingCart className="w-4 h-4" /> Tout ajouter au panier</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => { setKit(null); setFiles([]); setSavedKitId(null); }} className="flex-1 min-w-[140px]">Recommencer</Button>
+            <Button onClick={addAll} className="flex-1 min-w-[160px] gap-2"><ShoppingCart className="w-4 h-4" /> Ajouter au panier</Button>
+            {isAdmin && (
+              <>
+                <Button variant="secondary" disabled={saving} onClick={() => saveKit(false)} className="flex-1 min-w-[160px] gap-2">
+                  <Save className="w-4 h-4" /> {saving ? "..." : "Enregistrer brouillon"}
+                </Button>
+                <Button variant="default" disabled={saving} onClick={() => saveKit(true)} className="flex-1 min-w-[160px] gap-2">
+                  <Send className="w-4 h-4" /> {saving ? "..." : "Publier au catalogue"}
+                </Button>
+              </>
+            )}
           </div>
+
         </div>
       )}
     </div>
