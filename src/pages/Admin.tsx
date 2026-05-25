@@ -239,21 +239,7 @@ const Admin = () => {
       <Navbar />
       
       <div className="pt-20 min-h-screen flex">
-        {/* Fixed Admin Header with menu toggle - visible on all screen sizes */}
-        <div className="fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border lg:hidden">
-          <div className="flex items-center justify-between px-4 py-2">
-            <h2 className="text-lg font-display font-bold text-foreground">Admin</h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setMobileMenuOpen(true)}
-              className="gap-2"
-            >
-              <Menu size={18} />
-              Menu
-            </Button>
-          </div>
-        </div>
+
 
         {/* Sidebar - Desktop */}
         <aside className="w-64 bg-card border-r border-border hidden lg:block sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto">
@@ -329,7 +315,8 @@ const Admin = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 pt-16 lg:pt-4">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 pt-4">
+
           {activeTab === "dashboard" && <AdminDashboard />}
           {activeTab === "ai_manager" && <AIManager />}
           {activeTab === "email_marketing" && <EmailMarketing />}
