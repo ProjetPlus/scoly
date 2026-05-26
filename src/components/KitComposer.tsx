@@ -43,7 +43,7 @@ interface GeneratedKit {
   items: KitItem[];
 }
 
-const MAX_FILES = 10;
+const MAX_FILES = 100;
 const MAX_BYTES = 10 * 1024 * 1024;
 
 const KitComposer = () => {
@@ -58,12 +58,13 @@ const KitComposer = () => {
   const { addToCart } = useCart();
   const { isAdmin } = useAuth();
 
+  const showSeries = ["2nde", "1ère", "Terminale"].includes(level);
 
   const onPick = (list: FileList | null) => {
     if (!list) return;
     const arr = Array.from(list).slice(0, MAX_FILES);
     const bad = arr.find((f) => f.size > MAX_BYTES);
-    if (bad) { toast.error(`${bad.name} dépasse 8 Mo`); return; }
+    if (bad) { toast.error(`${bad.name} dépasse 10 Mo`); return; }
     setFiles(arr);
   };
 
