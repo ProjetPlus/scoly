@@ -18,7 +18,10 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const WEBHOOK_SECRET = Deno.env.get("RESEND_WEBHOOK_SECRET") || "";
 
 function verifySvix(payload: string, headers: Headers): boolean {
-  if (!WEBHOOK_SECRET) return true; // si pas de secret, on accepte (debug)
+  if (!WEBHOOK_SECRET) {
+    console.error("[Security] RESEND_WEBHOOK_SECRET not configured — rejecting webhook");
+    return false;
+  }
   const id = headers.get("svix-id");
   const ts = headers.get("svix-timestamp");
   const sig = headers.get("svix-signature");
