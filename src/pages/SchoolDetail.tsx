@@ -26,7 +26,7 @@ const SchoolDetail = () => {
         .eq("id", id)
         .single();
       if (error) throw error;
-      return data;
+      return data as any;
     },
     enabled: !!id,
   });
