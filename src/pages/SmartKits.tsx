@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Package, Sparkles, GraduationCap, ShoppingCart, BookOpen, Calculator, Pencil, Wand2, Search } from "lucide-react";
 import KitComposer from "@/components/KitComposer";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 
 import { toast } from "sonner";
@@ -40,58 +41,74 @@ const SERIES = [
 
 const PAGE_SIZE = 12;
 
+
 const SmartKits = () => {
   const { t } = useLanguage();
   const { addToCart } = useCart();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [mode, setMode] = useState<"buy" | "compose">("buy");
-  const [selectedLevel, setSelectedLevel] = useState<string>("all");
-  const [selectedSeries, setSelectedSeries] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
+  const selectedLevel = searchParams.get("level") || "all";
+  const selectedSeries = searchParams.get("series") || "all";
+  const urlSearch = searchParams.get("search") || "";
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+  const [searchInput, setSearchInput] = useState(urlSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
 
   const showSeries = ["2nde", "1ere", "tle"].includes(selectedLevel);
 
-  // Load ALL published kits by default
-  const { data: allKits = [], isLoading } = useQuery({
-    queryKey: ["smart-kits-all"],
+  const updateParam = (patch: Record<string, string | null>) => {
+    const next = new URLSearchParams(searchParams);
+    Object.entries(patch).forEach(([k, v]) => {
+      if (!v || v === "all" || v === "") next.delete(k);
+      else next.set(k, v);
+    });
+    // Reset page when filters change (except when only page changes)
+    if (!("page" in patch)) next.delete("page");
+    setSearchParams(next, { replace: true });
+  };
+
+  // Debounce search input → URL
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchInput), 350);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+  useEffect(() => {
+    if (debouncedSearch !== urlSearch) updateParam({ search: debouncedSearch || null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  // Server-side filtered + paginated kits
+  const { data: kitsResult, isLoading, isFetching } = useQuery({
+    queryKey: ["smart-kits", selectedLevel, selectedSeries, debouncedSearch, page],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      let q = supabase
         .from("smart_kits")
-        .select("*, smart_kit_items(*, products(*))")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+        .select("*, smart_kit_items(*, products(*))", { count: "exact" })
+        .eq("is_active", true);
+      if (selectedLevel !== "all") q = q.eq("grade_level", selectedLevel);
+      if (showSeries && selectedSeries !== "all") q = q.eq("series", selectedSeries);
+      if (debouncedSearch.trim()) {
+        const s = debouncedSearch.trim().replace(/[%_]/g, "");
+        q = q.or(`name.ilike.%${s}%,description.ilike.%${s}%`);
+      }
+      const { data, error, count } = await q
+        .order("created_at", { ascending: false })
+        .range(from, to);
       if (error) throw error;
-      return data || [];
+      return { rows: data || [], count: count || 0 };
     },
+    placeholderData: keepPreviousData,
   });
 
-  const kits = useMemo(() => {
-    let result = allKits;
-    if (selectedLevel !== "all") {
-      result = result.filter((k: any) => k.grade_level === selectedLevel);
-    }
-    if (showSeries && selectedSeries !== "all") {
-      result = result.filter((k: any) => k.series === selectedSeries);
-    }
-    if (searchTerm.trim()) {
-      const q = searchTerm.toLowerCase();
-      result = result.filter((k: any) =>
-        (k.name || "").toLowerCase().includes(q) ||
-        (k.description || "").toLowerCase().includes(q) ||
-        (k.smart_kit_items || []).some((it: any) =>
-          (it.item_name || it.products?.name_fr || "").toLowerCase().includes(q)
-        )
-      );
-    }
-    return result;
-  }, [allKits, selectedLevel, selectedSeries, showSeries, searchTerm]);
+  const kits = kitsResult?.rows || [];
+  const totalCount = kitsResult?.count || 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const paginatedKits = kits;
 
-  const totalPages = Math.max(1, Math.ceil(kits.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const paginatedKits = kits.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  // Reset to first page when filters change
-  useEffect(() => { setPage(1); }, [selectedLevel, selectedSeries, searchTerm]);
 
 
   // Fallback: products matching education_level when no kits
@@ -220,8 +237,8 @@ const SmartKits = () => {
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder="Rechercher un kit, une matière, un article…"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                     className="pl-10"
                   />
                 </div>
@@ -231,7 +248,7 @@ const SmartKits = () => {
                 <label className="text-sm font-medium text-foreground mb-2 block">
                   Niveau / Classe
                 </label>
-                <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                <Select value={selectedLevel} onValueChange={(v) => updateParam({ level: v, series: null })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Tous les niveaux" />
                   </SelectTrigger>
@@ -261,7 +278,7 @@ const SmartKits = () => {
                   <label className="text-sm font-medium text-foreground mb-2 block">
                     Série
                   </label>
-                  <Select value={selectedSeries} onValueChange={setSelectedSeries}>
+                  <Select value={selectedSeries} onValueChange={(v) => updateParam({ series: v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Toutes séries" />
                     </SelectTrigger>
@@ -356,19 +373,19 @@ const SmartKits = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage <= 1}
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      onClick={() => updateParam({ page: String(Math.max(1, page - 1)) })}
                     >
                       Précédent
                     </Button>
                     <span className="text-sm text-muted-foreground px-3">
-                      Page {currentPage} / {totalPages} · {kits.length} kits
+                      Page {page} / {totalPages} · {totalCount} kits
                     </span>
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage >= totalPages}
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                      onClick={() => updateParam({ page: String(Math.min(totalPages, page + 1)) })}
                     >
                       Suivant
                     </Button>
