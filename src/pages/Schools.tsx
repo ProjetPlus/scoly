@@ -40,7 +40,7 @@ const Schools = () => {
       
       const { data, error } = await query.limit(50);
       if (error) throw error;
-      return data || [];
+      return (data || []) as any[];
     },
   });
 
