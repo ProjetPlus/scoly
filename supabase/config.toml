@@ -9,7 +9,7 @@ enable_confirmations = false
 double_confirm_changes = true
 
 [functions.generate-kit-from-docs]
-verify_jwt = false
+verify_jwt = true
 
 [functions.bulk-create-products]
 verify_jwt = false

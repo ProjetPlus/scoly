@@ -244,7 +244,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p class="auto-msg">Message généré automatiquement, ne pas répondre.</p>
               <p>Bonjour <strong>${authorName}</strong>,</p>
               <p>Votre article <strong>"${article.title_fr}"</strong> nécessite des modifications.</p>
-              ${reason ? `<div class="reason-box"><strong>Commentaire :</strong><p>${reason}</p></div>` : ""}
+              ${reason ? `<div class="reason-box"><strong>Commentaire :</strong><p style="white-space:pre-wrap;">${String(reason).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}</p></div>` : ""}
               <p>Modifiez votre article depuis votre espace auteur et soumettez-le à nouveau.</p>
               <center>
                 <a href="https://scoly.ci/author" class="button">Modifier mon article</a>

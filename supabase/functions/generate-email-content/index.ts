@@ -1,5 +1,7 @@
 // Génère le contenu d'un email Scoly (sujet + preheader + HTML brandé) avec optionnellement
 // un visuel généré par IA (bannière, promo, produits, …).
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -66,7 +68,30 @@ Deno.serve(async (req) => {
   try {
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY missing');
     const auth = req.headers.get('Authorization');
-    if (!auth) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+    if (!auth?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const token = auth.replace('Bearer ', '');
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: auth } } }
+    );
+    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
+    const { data: roleRow } = await adminClient
+      .from('user_roles').select('role')
+      .eq('user_id', userData.user.id)
+      .in('role', ['admin', 'moderator']).maybeSingle();
+    if (!roleRow) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     const { prompt, type = 'newsletter', with_visual = false, visual_prompt } = await req.json();
     if (!prompt) throw new Error('prompt required');

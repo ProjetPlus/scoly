@@ -34,6 +34,19 @@ serve(async (req) => {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data: roleRow } = await adminClient
+      .from("user_roles").select("role")
+      .eq("user_id", claimsData.claims.sub)
+      .in("role", ["admin", "moderator", "vendor"]).maybeSingle();
+    if (!roleRow) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { text }: TranslateRequest = await req.json();
     if (!text || !text.trim()) {
