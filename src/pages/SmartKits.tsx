@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Package, Sparkles, GraduationCap, ShoppingCart, BookOpen, Calculator, Pencil, Wand2, Search } from "lucide-react";
 import KitComposer from "@/components/KitComposer";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,8 @@ const SERIES = [
   { value: "D", label: "Série D (Sciences naturelles)" },
 ];
 
+const PAGE_SIZE = 12;
+
 const SmartKits = () => {
   const { t } = useLanguage();
   const { addToCart } = useCart();
@@ -45,6 +47,7 @@ const SmartKits = () => {
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
   const [selectedSeries, setSelectedSeries] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
 
   const showSeries = ["2nde", "1ere", "tle"].includes(selectedLevel);
 
@@ -82,6 +85,14 @@ const SmartKits = () => {
     }
     return result;
   }, [allKits, selectedLevel, selectedSeries, showSeries, searchTerm]);
+
+  const totalPages = Math.max(1, Math.ceil(kits.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedKits = kits.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // Reset to first page when filters change
+  useEffect(() => { setPage(1); }, [selectedLevel, selectedSeries, searchTerm]);
+
 
   // Fallback: products matching education_level when no kits
   const { data: suggestedProducts = [] } = useQuery({
@@ -284,8 +295,9 @@ const SmartKits = () => {
                 ))}
               </div>
             ) : kits.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                {kits.map((kit: any) => (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                  {paginatedKits.map((kit: any) => (
                   <motion.div
                     key={kit.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -336,8 +348,33 @@ const SmartKits = () => {
                       </div>
                     </div>
                   </motion.div>
-                ))}
-              </div>
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-8">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage <= 1}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    >
+                      Précédent
+                    </Button>
+                    <span className="text-sm text-muted-foreground px-3">
+                      Page {currentPage} / {totalPages} · {kits.length} kits
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage >= totalPages}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    >
+                      Suivant
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : suggestedProducts.length > 0 ? (
               <div className="max-w-4xl mx-auto">
                 <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">

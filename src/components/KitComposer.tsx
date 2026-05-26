@@ -3,10 +3,27 @@ import { Upload, Wand2, RefreshCw, ShoppingCart, X, Sparkles, Save, Send } from 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+const KIT_LEVELS = [
+  { value: "CP1", cycle: "Primaire" }, { value: "CP2", cycle: "Primaire" },
+  { value: "CE1", cycle: "Primaire" }, { value: "CE2", cycle: "Primaire" },
+  { value: "CM1", cycle: "Primaire" }, { value: "CM2", cycle: "Primaire" },
+  { value: "6ème", cycle: "Collège" }, { value: "5ème", cycle: "Collège" },
+  { value: "4ème", cycle: "Collège" }, { value: "3ème", cycle: "Collège" },
+  { value: "2nde", cycle: "Lycée" }, { value: "1ère", cycle: "Lycée" },
+  { value: "Terminale", cycle: "Lycée" },
+];
+const KIT_SERIES = [
+  { value: "A", label: "Série A (Lettres)" },
+  { value: "C", label: "Série C (Sciences)" },
+  { value: "D", label: "Série D (Sciences naturelles)" },
+];
 
 
 interface KitItem {
@@ -26,7 +43,7 @@ interface GeneratedKit {
   items: KitItem[];
 }
 
-const MAX_FILES = 10;
+const MAX_FILES = 100;
 const MAX_BYTES = 10 * 1024 * 1024;
 
 const KitComposer = () => {
@@ -41,12 +58,13 @@ const KitComposer = () => {
   const { addToCart } = useCart();
   const { isAdmin } = useAuth();
 
+  const showSeries = ["2nde", "1ère", "Terminale"].includes(level);
 
   const onPick = (list: FileList | null) => {
     if (!list) return;
     const arr = Array.from(list).slice(0, MAX_FILES);
     const bad = arr.find((f) => f.size > MAX_BYTES);
-    if (bad) { toast.error(`${bad.name} dépasse 8 Mo`); return; }
+    if (bad) { toast.error(`${bad.name} dépasse 10 Mo`); return; }
     setFiles(arr);
   };
 
@@ -181,7 +199,7 @@ const KitComposer = () => {
           >
             <Upload className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
             <p className="text-sm font-medium">Déposez vos fichiers ou cliquez</p>
-            <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG · max {MAX_FILES} fichiers · 8 Mo chacun</p>
+            <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG · jusqu'à {MAX_FILES} fichiers · 10 Mo chacun</p>
             <input
               ref={inputRef} type="file" multiple accept="image/*,application/pdf"
               className="hidden" onChange={(e) => onPick(e.target.files)}
@@ -199,9 +217,34 @@ const KitComposer = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <Input placeholder="Niveau (ex: CP1, 6ème)" value={level} onChange={(e) => setLevel(e.target.value)} />
-            <Input placeholder="Série (A, C, D — optionnel)" value={series} onChange={(e) => setSeries(e.target.value)} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+            <div>
+              <Label className="text-xs">Niveau / Classe *</Label>
+              <Select value={level} onValueChange={(v) => { setLevel(v); if (!["2nde","1ère","Terminale"].includes(v)) setSeries(""); }}>
+                <SelectTrigger><SelectValue placeholder="Sélectionner un niveau" /></SelectTrigger>
+                <SelectContent>
+                  {["Primaire","Collège","Lycée"].map((cycle) => (
+                    <div key={cycle}>
+                      <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">{cycle}</div>
+                      {KIT_LEVELS.filter((l) => l.cycle === cycle).map((l) => (
+                        <SelectItem key={l.value} value={l.value}>{l.value}</SelectItem>
+                      ))}
+                    </div>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Série {showSeries ? "*" : "(lycée uniquement)"}</Label>
+              <Select value={series} onValueChange={setSeries} disabled={!showSeries}>
+                <SelectTrigger><SelectValue placeholder={showSeries ? "Sélectionner une série" : "—"} /></SelectTrigger>
+                <SelectContent>
+                  {KIT_SERIES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <Button onClick={generate} disabled={generating || files.length === 0} className="w-full mt-4 gap-2">
