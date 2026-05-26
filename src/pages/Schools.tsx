@@ -26,7 +26,7 @@ const Schools = () => {
     queryKey: ["schools", search, selectedCity],
     queryFn: async () => {
       let query = supabase
-        .from("schools")
+        .from("schools_public" as any)
         .select("*")
         .eq("is_verified", true)
         .order("name");
@@ -40,7 +40,7 @@ const Schools = () => {
       
       const { data, error } = await query.limit(50);
       if (error) throw error;
-      return data || [];
+      return (data || []) as any[];
     },
   });
 
