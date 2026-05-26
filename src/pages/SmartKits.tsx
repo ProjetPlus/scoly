@@ -86,6 +86,14 @@ const SmartKits = () => {
     return result;
   }, [allKits, selectedLevel, selectedSeries, showSeries, searchTerm]);
 
+  const totalPages = Math.max(1, Math.ceil(kits.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedKits = kits.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // Reset to first page when filters change
+  useMemo(() => { setPage(1); }, [selectedLevel, selectedSeries, searchTerm]);
+
+
   // Fallback: products matching education_level when no kits
   const { data: suggestedProducts = [] } = useQuery({
     queryKey: ["suggested-products", selectedLevel],
