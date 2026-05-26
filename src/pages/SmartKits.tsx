@@ -38,6 +38,8 @@ const SERIES = [
   { value: "D", label: "Série D (Sciences naturelles)" },
 ];
 
+const PAGE_SIZE = 12;
+
 const SmartKits = () => {
   const { t } = useLanguage();
   const { addToCart } = useCart();
@@ -45,6 +47,7 @@ const SmartKits = () => {
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
   const [selectedSeries, setSelectedSeries] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
 
   const showSeries = ["2nde", "1ere", "tle"].includes(selectedLevel);
 
