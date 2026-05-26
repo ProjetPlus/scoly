@@ -278,7 +278,7 @@ const SmartKits = () => {
                   <label className="text-sm font-medium text-foreground mb-2 block">
                     Série
                   </label>
-                  <Select value={selectedSeries} onValueChange={setSelectedSeries}>
+                  <Select value={selectedSeries} onValueChange={(v) => updateParam({ series: v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Toutes séries" />
                     </SelectTrigger>
