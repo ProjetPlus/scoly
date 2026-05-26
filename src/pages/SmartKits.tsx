@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Package, Sparkles, GraduationCap, ShoppingCart, BookOpen, Calculator, Pencil, Wand2, Search } from "lucide-react";
 import KitComposer from "@/components/KitComposer";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 
 import { toast } from "sonner";
