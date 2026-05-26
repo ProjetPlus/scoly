@@ -3,10 +3,27 @@ import { Upload, Wand2, RefreshCw, ShoppingCart, X, Sparkles, Save, Send } from 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+const KIT_LEVELS = [
+  { value: "CP1", cycle: "Primaire" }, { value: "CP2", cycle: "Primaire" },
+  { value: "CE1", cycle: "Primaire" }, { value: "CE2", cycle: "Primaire" },
+  { value: "CM1", cycle: "Primaire" }, { value: "CM2", cycle: "Primaire" },
+  { value: "6ème", cycle: "Collège" }, { value: "5ème", cycle: "Collège" },
+  { value: "4ème", cycle: "Collège" }, { value: "3ème", cycle: "Collège" },
+  { value: "2nde", cycle: "Lycée" }, { value: "1ère", cycle: "Lycée" },
+  { value: "Terminale", cycle: "Lycée" },
+];
+const KIT_SERIES = [
+  { value: "A", label: "Série A (Lettres)" },
+  { value: "C", label: "Série C (Sciences)" },
+  { value: "D", label: "Série D (Sciences naturelles)" },
+];
 
 
 interface KitItem {
