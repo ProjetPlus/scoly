@@ -295,8 +295,9 @@ const SmartKits = () => {
                 ))}
               </div>
             ) : kits.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                {kits.map((kit: any) => (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                  {paginatedKits.map((kit: any) => (
                   <motion.div
                     key={kit.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -347,8 +348,33 @@ const SmartKits = () => {
                       </div>
                     </div>
                   </motion.div>
-                ))}
-              </div>
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-8">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage <= 1}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    >
+                      Précédent
+                    </Button>
+                    <span className="text-sm text-muted-foreground px-3">
+                      Page {currentPage} / {totalPages} · {kits.length} kits
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage >= totalPages}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    >
+                      Suivant
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : suggestedProducts.length > 0 ? (
               <div className="max-w-4xl mx-auto">
                 <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
