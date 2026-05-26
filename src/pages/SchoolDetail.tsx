@@ -119,11 +119,6 @@ const SchoolDetail = () => {
                 <p className="text-muted-foreground flex items-center gap-2 mb-1">
                   <MapPin className="w-4 h-4" /> {school.city}{school.address && ` — ${school.address}`}
                 </p>
-                {school.phone && (
-                  <p className="text-muted-foreground flex items-center gap-2">
-                    <Phone className="w-4 h-4" /> {school.phone}
-                  </p>
-                )}
               </div>
               <Badge variant="secondary">
                 {school.type === "primary" ? "Primaire" :
