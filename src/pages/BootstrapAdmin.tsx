@@ -115,9 +115,8 @@ const BootstrapAdmin = () => {
                 <CheckCircle className="h-4 w-4" />
                 <div className="text-sm">
                   <p className="font-semibold">Compte Super Admin créé !</p>
-                  <p><strong>Email :</strong> admin@scoly.ci</p>
-                  <p><strong>Mot de passe :</strong> @AdminScoly2026</p>
-                  <p className="text-xs mt-1 text-muted-foreground">Changez ce mot de passe après la première connexion.</p>
+                  <p>Un email a été envoyé à l'adresse admin configurée avec les instructions pour définir le mot de passe.</p>
+                  <p className="text-xs mt-1 text-muted-foreground">Si vous n'avez pas reçu d'email, utilisez la fonction « Mot de passe oublié » sur la page de connexion.</p>
                 </div>
               </motion.div>
             )}
