@@ -217,9 +217,34 @@ const KitComposer = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <Input placeholder="Niveau (ex: CP1, 6ème)" value={level} onChange={(e) => setLevel(e.target.value)} />
-            <Input placeholder="Série (A, C, D — optionnel)" value={series} onChange={(e) => setSeries(e.target.value)} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+            <div>
+              <Label className="text-xs">Niveau / Classe *</Label>
+              <Select value={level} onValueChange={(v) => { setLevel(v); if (!["2nde","1ère","Terminale"].includes(v)) setSeries(""); }}>
+                <SelectTrigger><SelectValue placeholder="Sélectionner un niveau" /></SelectTrigger>
+                <SelectContent>
+                  {["Primaire","Collège","Lycée"].map((cycle) => (
+                    <div key={cycle}>
+                      <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">{cycle}</div>
+                      {KIT_LEVELS.filter((l) => l.cycle === cycle).map((l) => (
+                        <SelectItem key={l.value} value={l.value}>{l.value}</SelectItem>
+                      ))}
+                    </div>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Série {showSeries ? "*" : "(lycée uniquement)"}</Label>
+              <Select value={series} onValueChange={setSeries} disabled={!showSeries}>
+                <SelectTrigger><SelectValue placeholder={showSeries ? "Sélectionner une série" : "—"} /></SelectTrigger>
+                <SelectContent>
+                  {KIT_SERIES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <Button onClick={generate} disabled={generating || files.length === 0} className="w-full mt-4 gap-2">
