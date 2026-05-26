@@ -248,7 +248,7 @@ const SmartKits = () => {
                 <label className="text-sm font-medium text-foreground mb-2 block">
                   Niveau / Classe
                 </label>
-                <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                <Select value={selectedLevel} onValueChange={(v) => updateParam({ level: v, series: null })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Tous les niveaux" />
                   </SelectTrigger>
