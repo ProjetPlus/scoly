@@ -91,7 +91,7 @@ const SmartKits = () => {
   const paginatedKits = kits.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   // Reset to first page when filters change
-  useMemo(() => { setPage(1); }, [selectedLevel, selectedSeries, searchTerm]);
+  useEffect(() => { setPage(1); }, [selectedLevel, selectedSeries, searchTerm]);
 
 
   // Fallback: products matching education_level when no kits
