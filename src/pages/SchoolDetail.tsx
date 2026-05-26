@@ -21,7 +21,7 @@ const SchoolDetail = () => {
     queryKey: ["school", id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("schools")
+        .from("schools_public" as any)
         .select("*")
         .eq("id", id)
         .single();
