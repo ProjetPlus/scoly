@@ -373,19 +373,19 @@ const SmartKits = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage <= 1}
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      onClick={() => updateParam({ page: String(Math.max(1, page - 1)) })}
                     >
                       Précédent
                     </Button>
                     <span className="text-sm text-muted-foreground px-3">
-                      Page {currentPage} / {totalPages} · {kits.length} kits
+                      Page {page} / {totalPages} · {totalCount} kits
                     </span>
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage >= totalPages}
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page >= totalPages}
+                      onClick={() => updateParam({ page: String(Math.min(totalPages, page + 1)) })}
                     >
                       Suivant
                     </Button>
