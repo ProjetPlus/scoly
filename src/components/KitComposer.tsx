@@ -199,7 +199,7 @@ const KitComposer = () => {
           >
             <Upload className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
             <p className="text-sm font-medium">Déposez vos fichiers ou cliquez</p>
-            <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG · max {MAX_FILES} fichiers · 8 Mo chacun</p>
+            <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG · jusqu'à {MAX_FILES} fichiers · 10 Mo chacun</p>
             <input
               ref={inputRef} type="file" multiple accept="image/*,application/pdf"
               className="hidden" onChange={(e) => onPick(e.target.files)}
