@@ -41,7 +41,6 @@ const SERIES = [
 
 const PAGE_SIZE = 12;
 
-const PAGE_SIZE = 12;
 
 const SmartKits = () => {
   const { t } = useLanguage();
