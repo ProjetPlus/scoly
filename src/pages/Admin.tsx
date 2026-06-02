@@ -45,12 +45,11 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import UserManagement from "@/components/admin/UserManagement";
 import ProductForm from "@/components/admin/ProductForm";
 import BulkProductImport from "@/components/admin/BulkProductImport";
+import KitComposer from "@/components/KitComposer";
 import AuthorsManagement from "@/components/admin/AuthorsManagement";
 import PublicationsReview from "@/components/admin/PublicationsReview";
 import CouponManagement from "@/components/admin/CouponManagement";
@@ -105,6 +104,7 @@ type TabType =
   | "referrals"
   | "flash_deals"
   | "education_ai"
+  | "kit_composer"
   | "email_marketing"
   | "email_logs"
   | "email_analytics"
@@ -188,6 +188,7 @@ const Admin = () => {
       items: [
         { id: "articles", label: "Actualités", icon: FileText },
         { id: "review", label: "Validation", icon: Eye },
+        { id: "kit_composer", label: "Compositeur de kit", icon: GraduationCap },
         { id: "education_ai", label: "🧠 IA Éducation", icon: Brain },
         { id: "advertisements", label: "Publicités", icon: Bell },
         { id: "social_media", label: "Réseaux Sociaux", icon: Share2 },
@@ -222,8 +223,7 @@ const Admin = () => {
   if (loading) {
     return (
       <main className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-24 pb-16 flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       </main>
@@ -236,21 +236,22 @@ const Admin = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      <Navbar />
-      
-      <div className="pt-20 min-h-screen flex">
+      <div className="min-h-screen flex">
 
 
         {/* Sidebar - Desktop */}
-        <aside className="w-64 bg-card border-r border-border hidden lg:block sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto">
-          <div className="p-6">
-            <h2 className="text-xl font-display font-bold text-foreground">Administration</h2>
+        <aside className="w-64 bg-card border-r border-border hidden lg:block sticky top-0 h-screen overflow-y-auto">
+          <div className="p-4 border-b border-border">
+            <h2 className="text-lg font-display font-bold text-foreground">Administration</h2>
+            <p className="text-xs text-muted-foreground">Menu interne</p>
           </div>
-          <nav className="px-4 pb-8 space-y-4">
+          <nav className="px-3 py-4 space-y-2">
             {menuGroups.map((group) => (
-              <div key={group.label}>
-                <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">{group.label}</div>
-                <div className="space-y-1">
+              <details key={group.label} open className="rounded-lg border border-border/60 bg-background/40">
+                <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between">
+                  {group.label}<ChevronRight size={13} className="transition-transform" />
+                </summary>
+                <div className="space-y-1 px-2 pb-2">
                   {group.items.map((item) => (
                     <button
                       key={item.id}
@@ -266,7 +267,7 @@ const Admin = () => {
                     </button>
                   ))}
                 </div>
-              </div>
+              </details>
             ))}
           </nav>
         </aside>
@@ -279,9 +280,11 @@ const Admin = () => {
             </SheetHeader>
             <nav className="p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-100px)]">
               {menuGroups.map((group) => (
-                <div key={group.label}>
-                  <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">{group.label}</div>
-                  <div className="space-y-1">
+                <details key={group.label} open className="rounded-lg border border-border/70">
+                  <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between">
+                    {group.label}<ChevronRight size={13} />
+                  </summary>
+                  <div className="space-y-1 px-2 pb-2">
                     {group.items.map((item) => (
                       <button
                         key={item.id}
@@ -297,7 +300,7 @@ const Admin = () => {
                       </button>
                     ))}
                   </div>
-                </div>
+                </details>
               ))}
             </nav>
           </SheetContent>
@@ -346,6 +349,7 @@ const Admin = () => {
           {activeTab === "documentation" && <DocumentationManager />}
           {activeTab === "schools" && <SchoolsAdminTab />}
           {activeTab === "resources" && <ResourcesAdminTab />}
+          {activeTab === "kit_composer" && <KitComposer />}
           {activeTab === "education_ai" && <EducationAIManager />}
           {activeTab === "referrals" && <ReferralsAdminTab />}
           {activeTab === "settings" && <PlatformSettings />}

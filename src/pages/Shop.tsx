@@ -29,6 +29,9 @@ interface Product {
   is_featured: boolean;
   category_id: string | null;
   free_shipping: boolean;
+  brand: string | null;
+  author_details: string | null;
+  metadata: any;
 }
 
 interface Category {
@@ -51,6 +54,9 @@ const Shop = () => {
     searchParams.get("category") || null
   );
   const [sortBy, setSortBy] = useState("newest");
+  const [selectedPublisher, setSelectedPublisher] = useState("all");
+
+  const publishers = ["NEI/CEDA", "NEI", "CEDA", "EDICEF", "Eburnie", "Vallesse", "JD Editions", "Les Classiques Ivoiriens", "Frat Mat Editions", "SuperNova", "Sud Editions", "Nouvelles Editions Balafon", "S.N.P.E.C.I", "Africa Reflets Editions", "ARE"];
 
   useEffect(() => {
     fetchProducts();
@@ -130,7 +136,9 @@ const Shop = () => {
       const name = (productName(product) || '').toLowerCase();
       const matchesSearch = name.includes(searchQuery.toLowerCase());
       const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-      return matchesSearch && matchesCategory;
+      const pub = `${product.brand || ""} ${product.author_details || ""} ${(product.metadata as any)?.publisher || ""}`.toLowerCase();
+      const matchesPublisher = selectedPublisher === "all" || pub.includes(selectedPublisher.toLowerCase());
+      return matchesSearch && matchesCategory && matchesPublisher;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -193,6 +201,14 @@ const Shop = () => {
             <option value="price-desc">{t.shop.sortPriceDesc}</option>
             <option value="popular">{t.shop.sortPopular}</option>
           </select>
+          <select
+            value={selectedPublisher}
+            onChange={(e) => setSelectedPublisher(e.target.value)}
+            className="hidden lg:block h-10 px-3 rounded-md border border-border bg-card text-sm text-foreground min-w-[190px]"
+          >
+            <option value="all">Tous les éditeurs</option>
+            {publishers.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
           {/* Mobile filters drawer */}
           <Sheet>
             <SheetTrigger asChild>
@@ -212,6 +228,9 @@ const Shop = () => {
                 getLocalizedName={getLocalizedName}
                 sortBy={sortBy}
                 setSortBy={setSortBy}
+                publishers={publishers}
+                selectedPublisher={selectedPublisher}
+                setSelectedPublisher={setSelectedPublisher}
                 t={t}
               />
             </SheetContent>
@@ -233,6 +252,9 @@ const Shop = () => {
                   getLocalizedName={getLocalizedName}
                   sortBy={sortBy}
                   setSortBy={setSortBy}
+                  publishers={publishers}
+                  selectedPublisher={selectedPublisher}
+                  setSelectedPublisher={setSelectedPublisher}
                   t={t}
                   hideSort
                 />
@@ -285,6 +307,9 @@ interface FiltersPanelProps {
   getLocalizedName: (c: Category) => string;
   sortBy: string;
   setSortBy: (s: string) => void;
+  publishers: string[];
+  selectedPublisher: string;
+  setSelectedPublisher: (s: string) => void;
   t: any;
   hideSort?: boolean;
 }
@@ -296,6 +321,9 @@ const FiltersPanel = ({
   getLocalizedName,
   sortBy,
   setSortBy,
+  publishers,
+  selectedPublisher,
+  setSelectedPublisher,
   t,
   hideSort,
 }: FiltersPanelProps) => (
@@ -323,6 +351,19 @@ const FiltersPanel = ({
           </button>
         ))}
       </div>
+    </div>
+    <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
+      <h3 className="font-bold text-sm text-foreground mb-3 uppercase tracking-wide">Éditeurs ivoiriens</h3>
+      <select
+        value={selectedPublisher}
+        onChange={(e) => setSelectedPublisher(e.target.value)}
+        className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+      >
+        <option value="all">Tous les éditeurs</option>
+        {publishers.map((publisher) => (
+          <option key={publisher} value={publisher}>{publisher}</option>
+        ))}
+      </select>
     </div>
     {!hideSort && (
       <div className="bg-card rounded-xl border border-border p-3 sm:p-4">

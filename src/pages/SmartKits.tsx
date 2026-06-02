@@ -1,7 +1,6 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Package, Sparkles, GraduationCap, ShoppingCart, BookOpen, Calculator, Pencil, Wand2, Search } from "lucide-react";
-import KitComposer from "@/components/KitComposer";
+import { Package, GraduationCap, ShoppingCart, BookOpen, Calculator, Pencil, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -18,19 +17,19 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 const LEVELS = [
-  { value: "cp1", label: "CP1", cycle: "Primaire" },
-  { value: "cp2", label: "CP2", cycle: "Primaire" },
-  { value: "ce1", label: "CE1", cycle: "Primaire" },
-  { value: "ce2", label: "CE2", cycle: "Primaire" },
-  { value: "cm1", label: "CM1", cycle: "Primaire" },
-  { value: "cm2", label: "CM2", cycle: "Primaire" },
-  { value: "6eme", label: "6ème", cycle: "Collège" },
-  { value: "5eme", label: "5ème", cycle: "Collège" },
-  { value: "4eme", label: "4ème", cycle: "Collège" },
-  { value: "3eme", label: "3ème", cycle: "Collège" },
+  { value: "CP1", label: "CP1", cycle: "Primaire" },
+  { value: "CP2", label: "CP2", cycle: "Primaire" },
+  { value: "CE1", label: "CE1", cycle: "Primaire" },
+  { value: "CE2", label: "CE2", cycle: "Primaire" },
+  { value: "CM1", label: "CM1", cycle: "Primaire" },
+  { value: "CM2", label: "CM2", cycle: "Primaire" },
+  { value: "6ème", label: "6ème", cycle: "Collège" },
+  { value: "5ème", label: "5ème", cycle: "Collège" },
+  { value: "4ème", label: "4ème", cycle: "Collège" },
+  { value: "3ème", label: "3ème", cycle: "Collège" },
   { value: "2nde", label: "2nde", cycle: "Lycée" },
-  { value: "1ere", label: "1ère", cycle: "Lycée" },
-  { value: "tle", label: "Terminale", cycle: "Lycée" },
+  { value: "1ère", label: "1ère", cycle: "Lycée" },
+  { value: "Terminale", label: "Terminale", cycle: "Lycée" },
 ];
 
 const SERIES = [
@@ -47,7 +46,6 @@ const SmartKits = () => {
   const { addToCart } = useCart();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [mode, setMode] = useState<"buy" | "compose">("buy");
   const selectedLevel = searchParams.get("level") || "all";
   const selectedSeries = searchParams.get("series") || "all";
   const urlSearch = searchParams.get("search") || "";
@@ -55,7 +53,7 @@ const SmartKits = () => {
   const [searchInput, setSearchInput] = useState(urlSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
 
-  const showSeries = ["2nde", "1ere", "tle"].includes(selectedLevel);
+  const showSeries = ["2nde", "1ère", "Terminale"].includes(selectedLevel);
 
   const updateParam = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);
@@ -162,8 +160,8 @@ const SmartKits = () => {
   return (
     <main className="min-h-screen bg-background">
       <SEOHead
-        title="Kits Scolaires Intelligents — Scoly"
-        description="Composez automatiquement votre kit de fournitures par classe et série. Tout ce dont votre enfant a besoin, en un clic."
+          title="Kits Scolaires — Scoly"
+          description="Achetez des kits scolaires prêts à commander par classe et série avec livraison en Côte d'Ivoire."
       />
       <Navbar />
 
@@ -175,51 +173,17 @@ const SmartKits = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <Badge className="mb-4 bg-secondary/20 text-secondary-foreground border-secondary/30">
-              <Sparkles className="w-4 h-4 mr-1" />
-              Alimenté par l'IA
-            </Badge>
             <h1 className="text-4xl md:text-5xl font-display font-bold text-primary-foreground mb-4">
               Kits Scolaires
-              <span className="block text-secondary">Intelligents</span>
+              <span className="block text-secondary">Prêts à commander</span>
             </h1>
             <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-8">
-              Dites-nous la classe de votre enfant, on compose le kit parfait.
-              Tous les manuels et fournitures nécessaires, au meilleur prix.
+              Sélectionnez la classe, comparez les kits et ajoutez les fournitures au panier comme au marché, mais en ligne.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Mode Switcher */}
-      <section className="pt-8">
-        <div className="container mx-auto px-4 -mt-16 relative z-10 max-w-3xl">
-          <div className="grid grid-cols-2 gap-2 bg-card border border-border rounded-xl p-1.5 shadow-md">
-            <button
-              onClick={() => setMode("buy")}
-              className={`flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition ${mode === "buy" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
-            >
-              <ShoppingCart className="w-4 h-4" /> Acheter un kit
-            </button>
-            <button
-              onClick={() => setMode("compose")}
-              className={`flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition ${mode === "compose" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
-            >
-              <Wand2 className="w-4 h-4" /> Composer mon kit
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {mode === "compose" && (
-        <section className="py-12">
-          <div className="container mx-auto px-4 max-w-3xl">
-            <KitComposer />
-          </div>
-        </section>
-      )}
-
-      {mode === "buy" && (
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto bg-card rounded-2xl border border-border p-6 md:p-8 -mt-24 relative z-10 shadow-lg">
@@ -395,7 +359,6 @@ const SmartKits = () => {
             ) : suggestedProducts.length > 0 ? (
               <div className="max-w-4xl mx-auto">
                 <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-secondary" />
                   Suggestions pour {LEVELS.find((l) => l.value === selectedLevel)?.label}
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -422,7 +385,7 @@ const SmartKits = () => {
                   Aucun kit ne correspond à votre recherche
                 </h3>
                 <p className="text-muted-foreground">
-                  Essayez d'élargir les filtres ou composez votre propre kit ci-dessus.
+                  Essayez d'élargir les filtres ou consultez le catalogue complet.
                 </p>
               </div>
             )}
@@ -430,10 +393,6 @@ const SmartKits = () => {
 
         </div>
       </section>
-      )}
-
-
-
       {/* Benefits */}
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">

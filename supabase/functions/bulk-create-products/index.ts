@@ -13,7 +13,8 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
 const MAX_FILES = 100;
-const BATCH_SIZE = 6; // images per AI call (Gemini limit/perf)
+const BATCH_SIZE = 3; // smaller AI chunks are more reliable for 100-file imports
+const AI_RETRIES = 3;
 
 const EXTRACT_TOOL = {
   type: "function",
@@ -46,6 +47,7 @@ const EXTRACT_TOOL = {
               subject: { type: "string", description: "Matière si pertinent (Maths, Français...)" },
               series: { type: "string", description: "Série bac si applicable (A, C, D)" },
               product_type: { type: "string", description: "Type: cahier, livre, stylo, sac, calculatrice..." },
+              publisher: { type: "string", description: "Éditeur ivoirien si le produit est un manuel/livre" },
               characteristics: { type: "array", items: { type: "string" } },
               estimated_price_fcfa: { type: "number", description: "Prix marché Côte d'Ivoire en FCFA" },
             },
@@ -73,38 +75,45 @@ const norm = (s: string) =>
     .replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 
 async function callAI(filesBatch: any[], startIdx: number) {
+  const imageFiles = filesBatch.filter((f) => String(f.mime || "").startsWith("image/"));
+  const documentFiles = filesBatch.filter((f) => !String(f.mime || "").startsWith("image/"));
   const content: any[] = [
     {
       type: "text",
-      text: `Analyse ces ${filesBatch.length} fichier(s). Pour CHAQUE article visible (photo de produit) OU listé (liste scolaire imprimée/manuscrite, même raturée), crée une fiche produit complète. Indique source_file_index = position du fichier (commence à ${startIdx}). Génère noms/descriptions multilingues (FR/EN/ES/DE) et un prix réaliste en FCFA (marché ivoirien). Sois exhaustif: liste de 30 articles = 30 produits.`,
+      text: `Analyse ces ${filesBatch.length} fichier(s). Pour CHAQUE article visible (photo de produit) OU listé (liste scolaire imprimée/manuscrite, même raturée), crée une fiche produit complète. Indique source_file_index = position globale du fichier, en commençant à ${startIdx}. Génère noms/descriptions multilingues (FR/EN/ES/DE), type, éditeur si manuel/livre, matière/niveau/série, catégorie, et prix réaliste FCFA. Sois exhaustif: liste de 30 articles = 30 produits. Fichiers documentaires à considérer par nom si le contenu n'est pas lisible directement: ${documentFiles.map((f, i) => `${startIdx + i}:${f.name}`).join(", ") || "aucun"}.`,
     },
   ];
-  filesBatch.forEach((f) => {
+  imageFiles.forEach((f) => {
     content.push({
       type: "image_url",
       image_url: { url: `data:${f.mime};base64,${f.dataBase64}` },
     });
   });
 
-  const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-pro",
-      messages: [
-        { role: "system", content: "Tu es un expert e-commerce scolaire ivoirien. Tu lis aussi bien les manuscrits que les imprimés. Tu crées des fiches produits prêtes à publier." },
-        { role: "user", content },
-      ],
-      tools: [EXTRACT_TOOL],
-      tool_choice: { type: "function", function: { name: "extract_products" } },
-    }),
-  });
+  let resp: Response | null = null;
+  for (let attempt = 1; attempt <= AI_RETRIES; attempt++) {
+    resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: "Tu es un expert e-commerce scolaire ivoirien. Tu lis manuscrits, imprimés et photos produits. Tu crées des fiches produits prêtes à publier avec association image-source exacte." },
+          { role: "user", content },
+        ],
+        tools: [EXTRACT_TOOL],
+        tool_choice: { type: "function", function: { name: "extract_products" } },
+      }),
+    });
+    if (resp.ok || ![408, 429, 500, 502, 503, 504].includes(resp.status) || attempt === AI_RETRIES) break;
+    await new Promise((resolve) => setTimeout(resolve, 800 * attempt));
+  }
 
-  if (!resp.ok) {
-    const t = await resp.text();
-    console.error("AI error", resp.status, t);
+  if (!resp?.ok) {
+    const t = resp ? await resp.text() : "No response";
+    console.error("AI error", resp?.status, t);
     const err: any = new Error("AI gateway error");
-    err.status = resp.status;
+    err.status = resp?.status || 500;
     throw err;
   }
   const ai = await resp.json();
