@@ -307,6 +307,9 @@ interface FiltersPanelProps {
   getLocalizedName: (c: Category) => string;
   sortBy: string;
   setSortBy: (s: string) => void;
+  publishers: string[];
+  selectedPublisher: string;
+  setSelectedPublisher: (s: string) => void;
   t: any;
   hideSort?: boolean;
 }
@@ -318,6 +321,9 @@ const FiltersPanel = ({
   getLocalizedName,
   sortBy,
   setSortBy,
+  publishers,
+  selectedPublisher,
+  setSelectedPublisher,
   t,
   hideSort,
 }: FiltersPanelProps) => (
@@ -345,6 +351,19 @@ const FiltersPanel = ({
           </button>
         ))}
       </div>
+    </div>
+    <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
+      <h3 className="font-bold text-sm text-foreground mb-3 uppercase tracking-wide">Éditeurs ivoiriens</h3>
+      <select
+        value={selectedPublisher}
+        onChange={(e) => setSelectedPublisher(e.target.value)}
+        className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
+      >
+        <option value="all">Tous les éditeurs</option>
+        {publishers.map((publisher) => (
+          <option key={publisher} value={publisher}>{publisher}</option>
+        ))}
+      </select>
     </div>
     {!hideSort && (
       <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
