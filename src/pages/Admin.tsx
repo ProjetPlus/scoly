@@ -247,9 +247,11 @@ const Admin = () => {
           </div>
           <nav className="px-3 py-4 space-y-2">
             {menuGroups.map((group) => (
-              <div key={group.label}>
-                <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">{group.label}</div>
-                <div className="space-y-1">
+              <details key={group.label} open className="rounded-lg border border-border/60 bg-background/40">
+                <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between">
+                  {group.label}<ChevronRight size={13} className="transition-transform" />
+                </summary>
+                <div className="space-y-1 px-2 pb-2">
                   {group.items.map((item) => (
                     <button
                       key={item.id}
@@ -265,7 +267,7 @@ const Admin = () => {
                     </button>
                   ))}
                 </div>
-              </div>
+              </details>
             ))}
           </nav>
         </aside>
@@ -278,9 +280,11 @@ const Admin = () => {
             </SheetHeader>
             <nav className="p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-100px)]">
               {menuGroups.map((group) => (
-                <div key={group.label}>
-                  <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">{group.label}</div>
-                  <div className="space-y-1">
+                <details key={group.label} open className="rounded-lg border border-border/70">
+                  <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between">
+                    {group.label}<ChevronRight size={13} />
+                  </summary>
+                  <div className="space-y-1 px-2 pb-2">
                     {group.items.map((item) => (
                       <button
                         key={item.id}
@@ -296,7 +300,7 @@ const Admin = () => {
                       </button>
                     ))}
                   </div>
-                </div>
+                </details>
               ))}
             </nav>
           </SheetContent>
