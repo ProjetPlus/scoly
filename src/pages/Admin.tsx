@@ -222,8 +222,7 @@ const Admin = () => {
   if (loading) {
     return (
       <main className="min-h-screen bg-background">
-        <Navbar />
-        <div className="pt-24 pb-16 flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       </main>
@@ -236,17 +235,16 @@ const Admin = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      <Navbar />
-      
-      <div className="pt-20 min-h-screen flex">
+      <div className="min-h-screen flex">
 
 
         {/* Sidebar - Desktop */}
-        <aside className="w-64 bg-card border-r border-border hidden lg:block sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto">
-          <div className="p-6">
-            <h2 className="text-xl font-display font-bold text-foreground">Administration</h2>
+        <aside className="w-64 bg-card border-r border-border hidden lg:block sticky top-0 h-screen overflow-y-auto">
+          <div className="p-4 border-b border-border">
+            <h2 className="text-lg font-display font-bold text-foreground">Administration</h2>
+            <p className="text-xs text-muted-foreground">Menu interne</p>
           </div>
-          <nav className="px-4 pb-8 space-y-4">
+          <nav className="px-3 py-4 space-y-2">
             {menuGroups.map((group) => (
               <div key={group.label}>
                 <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">{group.label}</div>
