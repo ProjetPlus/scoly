@@ -45,12 +45,11 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import UserManagement from "@/components/admin/UserManagement";
 import ProductForm from "@/components/admin/ProductForm";
 import BulkProductImport from "@/components/admin/BulkProductImport";
+import KitComposer from "@/components/KitComposer";
 import AuthorsManagement from "@/components/admin/AuthorsManagement";
 import PublicationsReview from "@/components/admin/PublicationsReview";
 import CouponManagement from "@/components/admin/CouponManagement";
@@ -105,6 +104,7 @@ type TabType =
   | "referrals"
   | "flash_deals"
   | "education_ai"
+  | "kit_composer"
   | "email_marketing"
   | "email_logs"
   | "email_analytics"
