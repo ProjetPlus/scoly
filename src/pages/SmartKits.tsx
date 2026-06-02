@@ -17,19 +17,19 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 const LEVELS = [
-  { value: "cp1", label: "CP1", cycle: "Primaire" },
-  { value: "cp2", label: "CP2", cycle: "Primaire" },
-  { value: "ce1", label: "CE1", cycle: "Primaire" },
-  { value: "ce2", label: "CE2", cycle: "Primaire" },
-  { value: "cm1", label: "CM1", cycle: "Primaire" },
-  { value: "cm2", label: "CM2", cycle: "Primaire" },
-  { value: "6eme", label: "6ème", cycle: "Collège" },
-  { value: "5eme", label: "5ème", cycle: "Collège" },
-  { value: "4eme", label: "4ème", cycle: "Collège" },
-  { value: "3eme", label: "3ème", cycle: "Collège" },
+  { value: "CP1", label: "CP1", cycle: "Primaire" },
+  { value: "CP2", label: "CP2", cycle: "Primaire" },
+  { value: "CE1", label: "CE1", cycle: "Primaire" },
+  { value: "CE2", label: "CE2", cycle: "Primaire" },
+  { value: "CM1", label: "CM1", cycle: "Primaire" },
+  { value: "CM2", label: "CM2", cycle: "Primaire" },
+  { value: "6ème", label: "6ème", cycle: "Collège" },
+  { value: "5ème", label: "5ème", cycle: "Collège" },
+  { value: "4ème", label: "4ème", cycle: "Collège" },
+  { value: "3ème", label: "3ème", cycle: "Collège" },
   { value: "2nde", label: "2nde", cycle: "Lycée" },
-  { value: "1ere", label: "1ère", cycle: "Lycée" },
-  { value: "tle", label: "Terminale", cycle: "Lycée" },
+  { value: "1ère", label: "1ère", cycle: "Lycée" },
+  { value: "Terminale", label: "Terminale", cycle: "Lycée" },
 ];
 
 const SERIES = [
@@ -53,7 +53,7 @@ const SmartKits = () => {
   const [searchInput, setSearchInput] = useState(urlSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
 
-  const showSeries = ["2nde", "1ere", "tle"].includes(selectedLevel);
+  const showSeries = ["2nde", "1ère", "Terminale"].includes(selectedLevel);
 
   const updateParam = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);
