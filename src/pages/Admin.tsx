@@ -188,6 +188,7 @@ const Admin = () => {
       items: [
         { id: "articles", label: "Actualités", icon: FileText },
         { id: "review", label: "Validation", icon: Eye },
+        { id: "kit_composer", label: "Compositeur de kit", icon: GraduationCap },
         { id: "education_ai", label: "🧠 IA Éducation", icon: Brain },
         { id: "advertisements", label: "Publicités", icon: Bell },
         { id: "social_media", label: "Réseaux Sociaux", icon: Share2 },
@@ -344,6 +345,7 @@ const Admin = () => {
           {activeTab === "documentation" && <DocumentationManager />}
           {activeTab === "schools" && <SchoolsAdminTab />}
           {activeTab === "resources" && <ResourcesAdminTab />}
+          {activeTab === "kit_composer" && <KitComposer />}
           {activeTab === "education_ai" && <EducationAIManager />}
           {activeTab === "referrals" && <ReferralsAdminTab />}
           {activeTab === "settings" && <PlatformSettings />}
