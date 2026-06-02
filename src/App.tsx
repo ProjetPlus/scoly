@@ -11,7 +11,6 @@ import { CartProvider } from "@/contexts/CartContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import PageLoader from "@/components/PageLoader";
-// WhatsApp is now integrated into ScIA assistant
 import { SessionSecurityProvider } from "@/components/SessionSecurityProvider";
 
 // Critical path - eager load
@@ -34,7 +33,6 @@ const TeamDashboard = lazy(() => import("./pages/TeamDashboard"));
 const AuthorDashboard = lazy(() => import("./pages/AuthorDashboard"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const ArticlePayment = lazy(() => import("./pages/ArticlePayment"));
-const ScIA = lazy(() => import("./components/ScIA"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const BootstrapAdmin = lazy(() => import("./pages/BootstrapAdmin"));
 const ModeratorDashboard = lazy(() => import("./pages/ModeratorDashboard"));
@@ -132,8 +130,6 @@ const App = () => (
                       <Route path="/unsubscribe" element={<Unsubscribe />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
-                    <ScIA />
-                    {/* WhatsApp integrated into ScIA */}
                   </Suspense>
                 </BrowserRouter>
               </TooltipProvider>
