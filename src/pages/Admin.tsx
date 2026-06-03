@@ -286,30 +286,38 @@ const Admin = () => {
             <SheetHeader className="p-6 border-b border-border">
               <SheetTitle>Administration</SheetTitle>
             </SheetHeader>
-            <nav className="p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-100px)]">
-              {menuGroups.map((group) => (
-                <details key={group.label} open className="rounded-lg border border-border/70">
-                  <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between">
-                    {group.label}<ChevronRight size={13} />
-                  </summary>
-                  <div className="space-y-1 px-2 pb-2">
-                    {group.items.map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => handleTabChange(item.id as TabType)}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm ${
-                          activeTab === item.id
-                            ? "bg-primary text-primary-foreground"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        }`}
-                      >
-                        <item.icon size={18} />
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </details>
-              ))}
+            <nav className="p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-100px)]">
+              {menuGroups.map((group) => {
+                const isGroupActive = group.items.some((i) => i.id === activeTab);
+                return (
+                  <details
+                    key={group.label}
+                    open={isGroupActive}
+                    className="group/details rounded-lg border border-border/70"
+                  >
+                    <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground">
+                      {group.label}
+                      <ChevronRight size={13} className="transition-transform group-open/details:rotate-90" />
+                    </summary>
+                    <div className="space-y-1 px-2 pb-2 pt-1">
+                      {group.items.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => handleTabChange(item.id as TabType)}
+                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
+                            activeTab === item.id
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          }`}
+                        >
+                          <item.icon size={16} />
+                          <span className="truncate">{item.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+                );
+              })}
             </nav>
           </SheetContent>
         </Sheet>
