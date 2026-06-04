@@ -120,6 +120,17 @@ const Navbar = () => {
                 <Search size={20} />
               </button>
 
+              {/* Mobile-only login icon */}
+              {!user && (
+                <Link
+                  to="/auth"
+                  aria-label="Connexion"
+                  className="sm:hidden p-2 text-foreground"
+                >
+                  <User size={20} />
+                </Link>
+              )}
+
               {user && (
                 <Link to="/wishlist" className="relative hidden sm:inline-flex">
                   <Button variant="ghost" size="icon" aria-label="Liste de souhaits">
