@@ -277,12 +277,11 @@ const Navbar = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex gap-2">
-                  <Link to="/auth" className="flex-1" onClick={() => setIsOpen(false)}>
-                    <Button variant="secondary" className="w-full">Connexion</Button>
-                  </Link>
-                  <Link to="/auth?mode=signup" className="flex-1" onClick={() => setIsOpen(false)}>
-                    <Button variant="accent" className="w-full">S'inscrire</Button>
+                <div>
+                  <Link to="/auth" onClick={() => setIsOpen(false)}>
+                    <Button variant="secondary" className="w-full gap-2">
+                      <User size={18} /> Connexion
+                    </Button>
                   </Link>
                 </div>
               )}
