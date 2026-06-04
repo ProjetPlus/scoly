@@ -263,29 +263,19 @@ const Navbar = () => {
             aria-hidden="true"
           />
           <aside className="lg:hidden fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-background z-50 shadow-2xl flex flex-col animate-slide-in-left">
-            <div className="bg-primary text-primary-foreground p-5">
-              {user ? (
-                <div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                      <User size={20} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm opacity-80">Bonjour 👋</p>
-                      <p className="font-semibold truncate">{user.email}</p>
-                    </div>
+            {user && (
+              <div className="bg-primary text-primary-foreground p-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+                    <User size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm opacity-80">Bonjour 👋</p>
+                    <p className="font-semibold truncate">{user.email}</p>
                   </div>
                 </div>
-              ) : (
-                <div>
-                  <Link to="/auth" onClick={() => setIsOpen(false)}>
-                    <Button variant="secondary" className="w-full gap-2">
-                      <User size={18} /> Connexion
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             <nav className="flex-1 overflow-y-auto py-2">
               {!isDashboard && (
