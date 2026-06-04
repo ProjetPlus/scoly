@@ -12,45 +12,56 @@ const FlashDeals = () => {
   const { language, t } = useLanguage();
   const { addToCart } = useCart();
   const [deals, setDeals] = useState<any[]>([]);
+  const [endsAt, setEndsAt] = useState<Date | null>(null);
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     fetchDeals();
   }, []);
 
-  // Countdown timer - resets daily at midnight
+  // Countdown to the earliest active flash_deal_ends_at; hide when expired (no loop)
   useEffect(() => {
+    if (!endsAt) return;
     const updateTimer = () => {
-      const now = new Date();
-      const endOfDay = new Date(now);
-      endOfDay.setHours(23, 59, 59, 999);
-      const diff = endOfDay.getTime() - now.getTime();
-      
+      const diff = endsAt.getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+        setDeals([]);
+        setEndsAt(null);
+        return;
+      }
       setTimeLeft({
-        hours: Math.floor(diff / (1000 * 60 * 60)),
-        minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((diff % (1000 * 60)) / 1000),
+        hours: Math.floor(diff / 3_600_000),
+        minutes: Math.floor((diff % 3_600_000) / 60_000),
+        seconds: Math.floor((diff % 60_000) / 1000),
       });
     };
-
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [endsAt]);
 
   const fetchDeals = async () => {
     try {
-      // Get products with discounts
+      const nowIso = new Date().toISOString();
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .eq('is_active', true)
         .gt('discount_percent', 0)
-        .order('discount_percent', { ascending: false })
+        .not('flash_deal_ends_at', 'is', null)
+        .gt('flash_deal_ends_at', nowIso)
+        .order('flash_deal_ends_at', { ascending: true })
         .limit(6);
 
       if (error) throw error;
-      setDeals(data || []);
+      const list = data || [];
+      setDeals(list);
+      if (list.length > 0 && (list[0] as any).flash_deal_ends_at) {
+        setEndsAt(new Date((list[0] as any).flash_deal_ends_at));
+      } else {
+        setEndsAt(null);
+      }
     } catch (error) {
       console.error('Error fetching deals:', error);
     }
@@ -69,7 +80,7 @@ const FlashDeals = () => {
     return new Intl.NumberFormat('fr-FR').format(price) + ' ' + t.common.currency;
   };
 
-  if (deals.length === 0) return null;
+  if (deals.length === 0 || !endsAt) return null;
 
   return (
     <section className="py-12 bg-gradient-to-r from-secondary/10 via-background to-secondary/10">

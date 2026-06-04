@@ -120,6 +120,17 @@ const Navbar = () => {
                 <Search size={20} />
               </button>
 
+              {/* Mobile-only login icon */}
+              {!user && (
+                <Link
+                  to="/auth"
+                  aria-label="Connexion"
+                  className="sm:hidden p-2 text-foreground"
+                >
+                  <User size={20} />
+                </Link>
+              )}
+
               {user && (
                 <Link to="/wishlist" className="relative hidden sm:inline-flex">
                   <Button variant="ghost" size="icon" aria-label="Liste de souhaits">
@@ -266,12 +277,11 @@ const Navbar = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex gap-2">
-                  <Link to="/auth" className="flex-1" onClick={() => setIsOpen(false)}>
-                    <Button variant="secondary" className="w-full">Connexion</Button>
-                  </Link>
-                  <Link to="/auth?mode=signup" className="flex-1" onClick={() => setIsOpen(false)}>
-                    <Button variant="accent" className="w-full">S'inscrire</Button>
+                <div>
+                  <Link to="/auth" onClick={() => setIsOpen(false)}>
+                    <Button variant="secondary" className="w-full gap-2">
+                      <User size={18} /> Connexion
+                    </Button>
                   </Link>
                 </div>
               )}

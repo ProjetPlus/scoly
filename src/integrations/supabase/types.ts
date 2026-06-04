@@ -1469,6 +1469,7 @@ export type Database = {
           discount_percent: number | null
           education_level: string | null
           education_series: string | null
+          flash_deal_ends_at: string | null
           free_shipping: boolean | null
           id: string
           image_url: string | null
@@ -1508,6 +1509,7 @@ export type Database = {
           discount_percent?: number | null
           education_level?: string | null
           education_series?: string | null
+          flash_deal_ends_at?: string | null
           free_shipping?: boolean | null
           id?: string
           image_url?: string | null
@@ -1547,6 +1549,7 @@ export type Database = {
           discount_percent?: number | null
           education_level?: string | null
           education_series?: string | null
+          flash_deal_ends_at?: string | null
           free_shipping?: boolean | null
           id?: string
           image_url?: string | null
