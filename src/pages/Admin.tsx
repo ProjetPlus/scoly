@@ -59,12 +59,10 @@ import PlatformSettings from "@/components/admin/PlatformSettings";
 import AdvancedStats from "@/components/admin/AdvancedStats";
 import PaymentsTab from "@/components/admin/PaymentsTab";
 import ShareStatsTab from "@/components/admin/ShareStatsTab";
-import AIManager from "@/components/admin/AIManager";
 import PromotionsManagement from "@/components/admin/PromotionsManagement";
 import FlashDealsManagement from "@/components/admin/FlashDealsManagement";
 import SocialMediaManager from "@/components/admin/SocialMediaManager";
 import DocumentationManager from "@/components/admin/DocumentationManager";
-import EducationAIManager from "@/components/admin/EducationAIManager";
 import EmailMarketing from "@/components/admin/EmailMarketing";
 import EmailLogsDashboard from "@/components/admin/EmailLogsDashboard";
 import CampaignAnalyticsDashboard from "@/components/admin/CampaignAnalyticsDashboard";
@@ -259,7 +257,11 @@ const Admin = () => {
               return (
                 <details
                   key={group.label}
-                  open={isGroupActive}
+                  open={openMenuGroups.includes(group.label)}
+                  onToggle={(event) => {
+                    event.preventDefault();
+                    toggleMenuGroup(group.label);
+                  }}
                   className="group/details rounded-lg border border-border/60 bg-background/40"
                 >
                   <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground">
@@ -300,7 +302,11 @@ const Admin = () => {
                 return (
                   <details
                     key={group.label}
-                    open={isGroupActive}
+                    open={openMenuGroups.includes(group.label)}
+                    onToggle={(event) => {
+                      event.preventDefault();
+                      toggleMenuGroup(group.label);
+                    }}
                     className="group/details rounded-lg border border-border/70"
                   >
                     <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground">
@@ -345,7 +351,6 @@ const Admin = () => {
         <div className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 pt-4">
 
           {activeTab === "dashboard" && <AdminDashboard />}
-          {activeTab === "ai_manager" && <AIManager />}
           {activeTab === "email_marketing" && <EmailMarketing />}
           {activeTab === "email_logs" && <EmailLogsDashboard />}
           {activeTab === "email_analytics" && <CampaignAnalyticsDashboard />}
@@ -374,7 +379,6 @@ const Admin = () => {
           {activeTab === "schools" && <SchoolsAdminTab />}
           {activeTab === "resources" && <ResourcesAdminTab />}
           {activeTab === "kit_composer" && <KitComposer />}
-          {activeTab === "education_ai" && <EducationAIManager />}
           {activeTab === "referrals" && <ReferralsAdminTab />}
           {activeTab === "settings" && <PlatformSettings />}
         </div>
