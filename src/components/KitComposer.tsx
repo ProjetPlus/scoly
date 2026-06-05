@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Upload, Wand2, RefreshCw, ShoppingCart, X, Sparkles, Save, Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Upload, Wand2, RefreshCw, ShoppingCart, X, Plus, Save, Send, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -46,6 +46,23 @@ interface GeneratedKit {
 const MAX_FILES = 100;
 const MAX_BYTES = 10 * 1024 * 1024;
 
+interface CatalogProduct {
+  id: string;
+  name_fr: string;
+  price: number;
+  stock: number | null;
+  is_active: boolean | null;
+}
+
+const emptyItem = (): KitItem => ({
+  item_name: "",
+  quantity: 1,
+  is_required: true,
+  estimated_price: 0,
+  product_id: null,
+  category_hint: "",
+});
+
 const KitComposer = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [level, setLevel] = useState("");
@@ -54,11 +71,44 @@ const KitComposer = () => {
   const [saving, setSaving] = useState(false);
   const [savedKitId, setSavedKitId] = useState<string | null>(null);
   const [kit, setKit] = useState<GeneratedKit | null>(null);
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
+  const [productSearch, setProductSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { addToCart } = useCart();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
 
   const showSeries = ["2nde", "1ère", "Terminale"].includes(level);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("products")
+        .select("id, name_fr, price, stock, is_active")
+        .eq("is_active", true)
+        .order("name_fr")
+        .limit(1000);
+      setProducts(data || []);
+    })();
+  }, []);
+
+  const filteredProducts = products.filter((product) =>
+    product.name_fr.toLowerCase().includes(productSearch.toLowerCase().trim())
+  );
+
+  const kitTotal = (items: KitItem[]) => items.reduce((s, i) => s + (i.estimated_price || 0) * (i.quantity || 1), 0);
+
+  const startManualKit = () => {
+    const selectedLevel = level || "CP1";
+    setLevel(selectedLevel);
+    setKit({
+      kit_name: `Kit ${selectedLevel}`,
+      grade_level: selectedLevel,
+      series: series || null,
+      description: "Kit composé manuellement par l'administration.",
+      estimated_price: 0,
+      items: [emptyItem()],
+    });
+  };
 
   const onPick = (list: FileList | null) => {
     if (!list) return;
@@ -107,6 +157,18 @@ const KitComposer = () => {
     setKit({ ...kit, items, estimated_price: items.reduce((s, i) => s + i.estimated_price * i.quantity, 0) });
   };
 
+  const addItem = () => {
+    if (!kit) return;
+    const items = [...kit.items, emptyItem()];
+    setKit({ ...kit, items, estimated_price: kitTotal(items) });
+  };
+
+  const selectProduct = (idx: number, productId: string) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return updateItem(idx, { product_id: null });
+    updateItem(idx, { product_id: product.id, item_name: product.name_fr, estimated_price: product.price });
+  };
+
   const addAll = async () => {
     if (!kit) return;
     let added = 0;
@@ -123,8 +185,35 @@ const KitComposer = () => {
     if (!kit) return;
     setSaving(true);
     try {
-      const total = kit.items.reduce((s, i) => s + (i.estimated_price || 0) * (i.quantity || 1), 0);
+      const total = kitTotal(kit.items);
       let kitId = savedKitId;
+      let kitProductId: string | null = null;
+      if (publish) {
+        const { data: existingKit } = kitId
+          ? await supabase.from("smart_kits").select("product_id").eq("id", kitId).maybeSingle()
+          : { data: null } as any;
+        kitProductId = existingKit?.product_id || null;
+        const productPayload = {
+          name_fr: kit.kit_name,
+          name_en: kit.kit_name,
+          name_de: kit.kit_name,
+          name_es: kit.kit_name,
+          description_fr: kit.description,
+          price: total,
+          stock: 999,
+          is_active: true,
+          product_type: "school_supply",
+          metadata: { source: "smart_kit", grade_level: kit.grade_level, series: kit.series },
+        };
+        if (kitProductId) {
+          const { error } = await supabase.from("products").update(productPayload).eq("id", kitProductId);
+          if (error) throw error;
+        } else {
+          const { data, error } = await supabase.from("products").insert(productPayload).select("id").single();
+          if (error) throw error;
+          kitProductId = data.id;
+        }
+      }
       if (kitId) {
         const { error } = await supabase
           .from("smart_kits")
@@ -135,6 +224,9 @@ const KitComposer = () => {
             description: kit.description,
             total_price: total,
             is_active: publish,
+            status: publish ? "published" : "draft",
+            published_at: publish ? new Date().toISOString() : null,
+            product_id: kitProductId,
           })
           .eq("id", kitId);
         if (error) throw error;
@@ -148,6 +240,10 @@ const KitComposer = () => {
             description: kit.description,
             total_price: total,
             is_active: publish,
+            status: publish ? "published" : "draft",
+            published_at: publish ? new Date().toISOString() : null,
+            created_by: user?.id || null,
+            product_id: kitProductId,
           })
           .select("id")
           .single();
@@ -164,6 +260,8 @@ const KitComposer = () => {
         item_name: it.item_name,
         quantity: it.quantity || 1,
         is_required: it.is_required ?? true,
+        estimated_price: it.estimated_price || 0,
+        category_hint: it.category_hint || null,
         sort_order: idx,
       }));
       if (itemRows.length > 0) {
@@ -247,9 +345,17 @@ const KitComposer = () => {
             </div>
           </div>
 
-          <Button onClick={generate} disabled={generating || files.length === 0} className="w-full mt-4 gap-2">
-            {generating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            {generating ? "L'IA travaille..." : "Générer mon kit"}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+            <Button onClick={generate} disabled={generating || files.length === 0} className="gap-2">
+              {generating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+              {generating ? "Analyse en cours..." : "Générer depuis fichiers"}
+            </Button>
+            {isAdmin && (
+              <Button type="button" variant="outline" onClick={startManualKit} className="gap-2">
+                <Plus className="w-4 h-4" /> Composer manuellement
+              </Button>
+            )}
+          </div>
           </Button>
         </>
       )}
@@ -262,17 +368,35 @@ const KitComposer = () => {
             <Badge className="mt-2">{kit.estimated_price.toLocaleString("fr-FR")} FCFA estimé</Badge>
           </div>
 
+          <div className="relative">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Chercher dans les produits disponibles" className="pl-9 h-9" />
+          </div>
+
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {kit.items.map((it, idx) => (
-              <div key={idx} className="flex items-center gap-2 bg-muted/30 rounded-lg p-2">
-                <Input value={it.item_name} onChange={(e) => updateItem(idx, { item_name: e.target.value })} className="flex-1 h-9" />
-                <Input type="number" min={1} value={it.quantity} onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) || 1 })} className="w-16 h-9" />
-                <Input type="number" min={0} value={it.estimated_price} onChange={(e) => updateItem(idx, { estimated_price: Number(e.target.value) || 0 })} className="w-24 h-9" />
+              <div key={idx} className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_72px_112px_40px] gap-2 bg-muted/30 rounded-lg p-2">
+                <Select value={it.product_id || "manual"} onValueChange={(value) => selectProduct(idx, value === "manual" ? "" : value)}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Produit catalogue" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Hors catalogue / manuel</SelectItem>
+                    {filteredProducts.slice(0, 80).map((product) => (
+                      <SelectItem key={product.id} value={product.id}>{product.name_fr} · {product.price.toLocaleString("fr-FR")} FCFA</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input value={it.item_name} onChange={(e) => updateItem(idx, { item_name: e.target.value, product_id: null })} placeholder="Ex: bic bleu, cahier 100 pages" className="h-9" />
+                <Input type="number" min={1} value={it.quantity} onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) || 1 })} className="h-9" />
+                <Input type="number" min={0} value={it.estimated_price} onChange={(e) => updateItem(idx, { estimated_price: Number(e.target.value) || 0 })} className="h-9" />
                 {it.product_id ? <Badge variant="secondary" className="text-[10px]">Catalogue</Badge> : <Badge variant="outline" className="text-[10px]">Hors catalogue</Badge>}
-                <Button size="icon" variant="ghost" onClick={() => removeItem(idx)}><X className="w-4 h-4" /></Button>
+                <Button size="icon" variant="ghost" aria-label="Retirer l'article" onClick={() => removeItem(idx)}><X className="w-4 h-4" /></Button>
               </div>
             ))}
           </div>
+
+          <Button type="button" variant="outline" onClick={addItem} className="w-full gap-2">
+            <Plus className="w-4 h-4" /> Ajouter une ligne
+          </Button>
 
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => { setKit(null); setFiles([]); setSavedKitId(null); }} className="flex-1 min-w-[140px]">Recommencer</Button>

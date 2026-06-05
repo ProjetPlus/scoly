@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  Brain,
   LayoutDashboard, 
   Package, 
   FolderTree, 
@@ -60,12 +59,10 @@ import PlatformSettings from "@/components/admin/PlatformSettings";
 import AdvancedStats from "@/components/admin/AdvancedStats";
 import PaymentsTab from "@/components/admin/PaymentsTab";
 import ShareStatsTab from "@/components/admin/ShareStatsTab";
-import AIManager from "@/components/admin/AIManager";
 import PromotionsManagement from "@/components/admin/PromotionsManagement";
 import FlashDealsManagement from "@/components/admin/FlashDealsManagement";
 import SocialMediaManager from "@/components/admin/SocialMediaManager";
 import DocumentationManager from "@/components/admin/DocumentationManager";
-import EducationAIManager from "@/components/admin/EducationAIManager";
 import EmailMarketing from "@/components/admin/EmailMarketing";
 import EmailLogsDashboard from "@/components/admin/EmailLogsDashboard";
 import CampaignAnalyticsDashboard from "@/components/admin/CampaignAnalyticsDashboard";
@@ -96,14 +93,12 @@ type TabType =
   | "deliveries"
   | "loyalty"
   | "payments"
-  | "ai_manager"
   | "social_media"
   | "documentation"
   | "schools"
   | "resources"
   | "referrals"
   | "flash_deals"
-  | "education_ai"
   | "kit_composer"
   | "email_marketing"
   | "email_logs"
@@ -118,6 +113,7 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openMenuGroups, setOpenMenuGroups] = useState<string[]>(["Vue d'ensemble", "Catalogue & Ventes", "Contenu & Kits"]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -184,12 +180,11 @@ const Admin = () => {
       ],
     },
     {
-      label: "Contenu & Éducation",
+      label: "Contenu & Kits",
       items: [
         { id: "articles", label: "Actualités", icon: FileText },
         { id: "review", label: "Validation", icon: Eye },
         { id: "kit_composer", label: "Compositeur de kit", icon: GraduationCap },
-        { id: "education_ai", label: "🧠 IA Éducation", icon: Brain },
         { id: "advertisements", label: "Publicités", icon: Bell },
         { id: "social_media", label: "Réseaux Sociaux", icon: Share2 },
       ],
@@ -206,7 +201,6 @@ const Admin = () => {
     {
       label: "Système",
       items: [
-        { id: "ai_manager", label: "🤖 Module IA", icon: Brain },
         { id: "faq", label: "FAQ", icon: HelpCircle },
         { id: "documentation", label: "Documentation", icon: FileText },
         { id: "settings", label: "Paramètres", icon: Settings },
@@ -214,6 +208,18 @@ const Admin = () => {
     },
   ];
   const menuItems = menuGroups.flatMap((g) => g.items);
+  const activeGroup = menuGroups.find((group) => group.items.some((item) => item.id === activeTab))?.label;
+
+  useEffect(() => {
+    if (!activeGroup) return;
+    setOpenMenuGroups((prev) => (prev.includes(activeGroup) ? prev : [...prev, activeGroup]));
+  }, [activeGroup]);
+
+  const toggleMenuGroup = (label: string) => {
+    setOpenMenuGroups((prev) =>
+      prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
+    );
+  };
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -251,7 +257,11 @@ const Admin = () => {
               return (
                 <details
                   key={group.label}
-                  open={isGroupActive}
+                  open={openMenuGroups.includes(group.label)}
+                  onToggle={(event) => {
+                    event.preventDefault();
+                    toggleMenuGroup(group.label);
+                  }}
                   className="group/details rounded-lg border border-border/60 bg-background/40"
                 >
                   <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground">
@@ -292,7 +302,11 @@ const Admin = () => {
                 return (
                   <details
                     key={group.label}
-                    open={isGroupActive}
+                    open={openMenuGroups.includes(group.label)}
+                    onToggle={(event) => {
+                      event.preventDefault();
+                      toggleMenuGroup(group.label);
+                    }}
                     className="group/details rounded-lg border border-border/70"
                   >
                     <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground">
@@ -337,7 +351,6 @@ const Admin = () => {
         <div className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 pt-4">
 
           {activeTab === "dashboard" && <AdminDashboard />}
-          {activeTab === "ai_manager" && <AIManager />}
           {activeTab === "email_marketing" && <EmailMarketing />}
           {activeTab === "email_logs" && <EmailLogsDashboard />}
           {activeTab === "email_analytics" && <CampaignAnalyticsDashboard />}
@@ -366,7 +379,6 @@ const Admin = () => {
           {activeTab === "schools" && <SchoolsAdminTab />}
           {activeTab === "resources" && <ResourcesAdminTab />}
           {activeTab === "kit_composer" && <KitComposer />}
-          {activeTab === "education_ai" && <EducationAIManager />}
           {activeTab === "referrals" && <ReferralsAdminTab />}
           {activeTab === "settings" && <PlatformSettings />}
         </div>
