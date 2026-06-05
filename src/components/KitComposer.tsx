@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Upload, Wand2, RefreshCw, ShoppingCart, X, Plus, Save, Send } from "lucide-react";
+import { Upload, Wand2, RefreshCw, ShoppingCart, X, Plus, Save, Send, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -157,6 +157,18 @@ const KitComposer = () => {
     setKit({ ...kit, items, estimated_price: items.reduce((s, i) => s + i.estimated_price * i.quantity, 0) });
   };
 
+  const addItem = () => {
+    if (!kit) return;
+    const items = [...kit.items, emptyItem()];
+    setKit({ ...kit, items, estimated_price: kitTotal(items) });
+  };
+
+  const selectProduct = (idx: number, productId: string) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return updateItem(idx, { product_id: null });
+    updateItem(idx, { product_id: product.id, item_name: product.name_fr, estimated_price: product.price });
+  };
+
   const addAll = async () => {
     if (!kit) return;
     let added = 0;
@@ -173,8 +185,35 @@ const KitComposer = () => {
     if (!kit) return;
     setSaving(true);
     try {
-      const total = kit.items.reduce((s, i) => s + (i.estimated_price || 0) * (i.quantity || 1), 0);
+      const total = kitTotal(kit.items);
       let kitId = savedKitId;
+      let kitProductId: string | null = null;
+      if (publish) {
+        const { data: existingKit } = kitId
+          ? await supabase.from("smart_kits").select("product_id").eq("id", kitId).maybeSingle()
+          : { data: null } as any;
+        kitProductId = existingKit?.product_id || null;
+        const productPayload = {
+          name_fr: kit.kit_name,
+          name_en: kit.kit_name,
+          name_de: kit.kit_name,
+          name_es: kit.kit_name,
+          description_fr: kit.description,
+          price: total,
+          stock: 999,
+          is_active: true,
+          product_type: "school_supply",
+          metadata: { source: "smart_kit", grade_level: kit.grade_level, series: kit.series },
+        };
+        if (kitProductId) {
+          const { error } = await supabase.from("products").update(productPayload).eq("id", kitProductId);
+          if (error) throw error;
+        } else {
+          const { data, error } = await supabase.from("products").insert(productPayload).select("id").single();
+          if (error) throw error;
+          kitProductId = data.id;
+        }
+      }
       if (kitId) {
         const { error } = await supabase
           .from("smart_kits")
@@ -185,6 +224,9 @@ const KitComposer = () => {
             description: kit.description,
             total_price: total,
             is_active: publish,
+            status: publish ? "published" : "draft",
+            published_at: publish ? new Date().toISOString() : null,
+            product_id: kitProductId,
           })
           .eq("id", kitId);
         if (error) throw error;
@@ -198,6 +240,10 @@ const KitComposer = () => {
             description: kit.description,
             total_price: total,
             is_active: publish,
+            status: publish ? "published" : "draft",
+            published_at: publish ? new Date().toISOString() : null,
+            created_by: user?.id || null,
+            product_id: kitProductId,
           })
           .select("id")
           .single();
@@ -214,6 +260,8 @@ const KitComposer = () => {
         item_name: it.item_name,
         quantity: it.quantity || 1,
         is_required: it.is_required ?? true,
+        estimated_price: it.estimated_price || 0,
+        category_hint: it.category_hint || null,
         sort_order: idx,
       }));
       if (itemRows.length > 0) {
