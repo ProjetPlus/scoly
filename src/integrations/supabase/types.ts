@@ -2124,6 +2124,8 @@ export type Database = {
       }
       smart_kit_items: {
         Row: {
+          category_hint: string | null
+          estimated_price: number
           id: string
           is_required: boolean | null
           item_name: string
@@ -2133,6 +2135,8 @@ export type Database = {
           sort_order: number | null
         }
         Insert: {
+          category_hint?: string | null
+          estimated_price?: number
           id?: string
           is_required?: boolean | null
           item_name: string
@@ -2142,6 +2146,8 @@ export type Database = {
           sort_order?: number | null
         }
         Update: {
+          category_hint?: string | null
+          estimated_price?: number
           id?: string
           is_required?: boolean | null
           item_name?: string
@@ -2170,6 +2176,7 @@ export type Database = {
       smart_kits: {
         Row: {
           created_at: string | null
+          created_by: string | null
           description: string | null
           discount_price: number | null
           grade_level: string
@@ -2177,13 +2184,16 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           name: string
+          published_at: string | null
           school_type: string | null
           series: string | null
+          status: string
           total_price: number | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           discount_price?: number | null
           grade_level: string
@@ -2191,13 +2201,16 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name: string
+          published_at?: string | null
           school_type?: string | null
           series?: string | null
+          status?: string
           total_price?: number | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           discount_price?: number | null
           grade_level?: string
@@ -2205,12 +2218,22 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name?: string
+          published_at?: string | null
           school_type?: string | null
           series?: string | null
+          status?: string
           total_price?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "smart_kits_created_by_profiles_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_addresses: {
         Row: {
@@ -2773,6 +2796,13 @@ export type Database = {
           remaining: number
           sent_today: number
           usage_pct: number
+        }[]
+      }
+      get_public_runtime_settings: {
+        Args: never
+        Returns: {
+          key: string
+          value: string
         }[]
       }
       get_share_stats: {
