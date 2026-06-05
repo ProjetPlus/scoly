@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  Brain,
   LayoutDashboard, 
   Package, 
   FolderTree, 
@@ -96,14 +95,12 @@ type TabType =
   | "deliveries"
   | "loyalty"
   | "payments"
-  | "ai_manager"
   | "social_media"
   | "documentation"
   | "schools"
   | "resources"
   | "referrals"
   | "flash_deals"
-  | "education_ai"
   | "kit_composer"
   | "email_marketing"
   | "email_logs"
@@ -118,6 +115,7 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openMenuGroups, setOpenMenuGroups] = useState<string[]>(["Vue d'ensemble", "Catalogue & Ventes", "Contenu & Kits"]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -184,12 +182,11 @@ const Admin = () => {
       ],
     },
     {
-      label: "Contenu & Éducation",
+      label: "Contenu & Kits",
       items: [
         { id: "articles", label: "Actualités", icon: FileText },
         { id: "review", label: "Validation", icon: Eye },
         { id: "kit_composer", label: "Compositeur de kit", icon: GraduationCap },
-        { id: "education_ai", label: "🧠 IA Éducation", icon: Brain },
         { id: "advertisements", label: "Publicités", icon: Bell },
         { id: "social_media", label: "Réseaux Sociaux", icon: Share2 },
       ],
@@ -206,7 +203,6 @@ const Admin = () => {
     {
       label: "Système",
       items: [
-        { id: "ai_manager", label: "🤖 Module IA", icon: Brain },
         { id: "faq", label: "FAQ", icon: HelpCircle },
         { id: "documentation", label: "Documentation", icon: FileText },
         { id: "settings", label: "Paramètres", icon: Settings },
@@ -214,6 +210,18 @@ const Admin = () => {
     },
   ];
   const menuItems = menuGroups.flatMap((g) => g.items);
+  const activeGroup = menuGroups.find((group) => group.items.some((item) => item.id === activeTab))?.label;
+
+  useEffect(() => {
+    if (!activeGroup) return;
+    setOpenMenuGroups((prev) => (prev.includes(activeGroup) ? prev : [...prev, activeGroup]));
+  }, [activeGroup]);
+
+  const toggleMenuGroup = (label: string) => {
+    setOpenMenuGroups((prev) =>
+      prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
+    );
+  };
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
