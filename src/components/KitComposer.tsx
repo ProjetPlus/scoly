@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Upload, Wand2, RefreshCw, ShoppingCart, X, Sparkles, Save, Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Upload, Wand2, RefreshCw, ShoppingCart, X, Plus, Save, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -46,6 +46,23 @@ interface GeneratedKit {
 const MAX_FILES = 100;
 const MAX_BYTES = 10 * 1024 * 1024;
 
+interface CatalogProduct {
+  id: string;
+  name_fr: string;
+  price: number;
+  stock: number | null;
+  is_active: boolean | null;
+}
+
+const emptyItem = (): KitItem => ({
+  item_name: "",
+  quantity: 1,
+  is_required: true,
+  estimated_price: 0,
+  product_id: null,
+  category_hint: "",
+});
+
 const KitComposer = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [level, setLevel] = useState("");
@@ -54,11 +71,44 @@ const KitComposer = () => {
   const [saving, setSaving] = useState(false);
   const [savedKitId, setSavedKitId] = useState<string | null>(null);
   const [kit, setKit] = useState<GeneratedKit | null>(null);
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
+  const [productSearch, setProductSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { addToCart } = useCart();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
 
   const showSeries = ["2nde", "1ère", "Terminale"].includes(level);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("products")
+        .select("id, name_fr, price, stock, is_active")
+        .eq("is_active", true)
+        .order("name_fr")
+        .limit(1000);
+      setProducts(data || []);
+    })();
+  }, []);
+
+  const filteredProducts = products.filter((product) =>
+    product.name_fr.toLowerCase().includes(productSearch.toLowerCase().trim())
+  );
+
+  const kitTotal = (items: KitItem[]) => items.reduce((s, i) => s + (i.estimated_price || 0) * (i.quantity || 1), 0);
+
+  const startManualKit = () => {
+    const selectedLevel = level || "CP1";
+    setLevel(selectedLevel);
+    setKit({
+      kit_name: `Kit ${selectedLevel}`,
+      grade_level: selectedLevel,
+      series: series || null,
+      description: "Kit composé manuellement par l'administration.",
+      estimated_price: 0,
+      items: [emptyItem()],
+    });
+  };
 
   const onPick = (list: FileList | null) => {
     if (!list) return;
