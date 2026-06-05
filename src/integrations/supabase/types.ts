@@ -2184,6 +2184,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           name: string
+          product_id: string | null
           published_at: string | null
           school_type: string | null
           series: string | null
@@ -2201,6 +2202,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name: string
+          product_id?: string | null
           published_at?: string | null
           school_type?: string | null
           series?: string | null
@@ -2218,6 +2220,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name?: string
+          product_id?: string | null
           published_at?: string | null
           school_type?: string | null
           series?: string | null
@@ -2231,6 +2234,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_kits_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
