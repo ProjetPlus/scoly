@@ -84,35 +84,23 @@ const FeaturedProductsCarousel = () => {
   if (products.length === 0) return null;
 
   return (
-    <section className="py-16 bg-muted/50">
+    <section className="py-8 bg-muted/50">
       <div className="container mx-auto px-4">
-        {/* Header - Centered */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-display font-bold text-foreground">
-            Produits populaires
-          </h2>
-          <p className="text-muted-foreground mt-2">
-            Les fournitures les plus demandées par nos clients
-          </p>
-          {/* Navigation buttons centered below */}
-          <div className="flex justify-center gap-2 mt-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={prevSlide}
-              disabled={currentIndex === 0}
-              className="rounded-full"
-            >
-              <ChevronLeft size={20} />
+        <div className="flex items-end justify-between mb-4 gap-3">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground">
+              Produits populaires
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Les fournitures les plus demandées
+            </p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <Button variant="outline" size="icon" onClick={prevSlide} disabled={currentIndex === 0} className="rounded-full h-8 w-8">
+              <ChevronLeft size={16} />
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={nextSlide}
-              disabled={currentIndex >= products.length - 4}
-              className="rounded-full"
-            >
-              <ChevronRight size={20} />
+            <Button variant="outline" size="icon" onClick={nextSlide} disabled={currentIndex >= products.length - 4} className="rounded-full h-8 w-8">
+              <ChevronRight size={16} />
             </Button>
           </div>
         </div>
@@ -186,7 +174,7 @@ const FeaturedProductsCarousel = () => {
         </div>
 
         {/* Indicators */}
-        <div className="flex justify-center gap-2 mt-6">
+        <div className="flex justify-center gap-2 mt-4">
           {Array.from({ length: Math.max(products.length - 3, 1) }).map((_, i) => (
             <button
               key={i}
@@ -198,9 +186,9 @@ const FeaturedProductsCarousel = () => {
           ))}
         </div>
 
-        <div className="text-center mt-8">
+        <div className="text-center mt-5">
           <Link to="/shop">
-            <Button variant="outline" size="lg">
+            <Button variant="outline" size="sm">
               Voir tous les produits
             </Button>
           </Link>
