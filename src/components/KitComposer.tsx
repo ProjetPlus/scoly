@@ -356,7 +356,6 @@ const KitComposer = () => {
               </Button>
             )}
           </div>
-          </Button>
         </>
       )}
 
