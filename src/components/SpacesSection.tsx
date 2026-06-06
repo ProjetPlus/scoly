@@ -46,23 +46,23 @@ const SpacesSection = () => {
   };
   
   return (
-    <section className="py-20 lg:py-32 bg-background" id="spaces">
+    <section className="py-10 lg:py-14 bg-background" id="spaces">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-6">
+          <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-2">
             Nos services
           </span>
-          <h2 className="text-3xl lg:text-5xl font-display font-bold text-foreground mb-4">
+          <h2 className="text-2xl lg:text-3xl font-display font-bold text-foreground mb-2">
             Tout pour l'école et le bureau
           </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            Scoly vous offre des fournitures scolaires et bureautiques de qualité pour accompagner votre réussite
+          <p className="text-sm text-muted-foreground">
+            Fournitures scolaires et bureautiques de qualité pour accompagner votre réussite
           </p>
         </div>
 
         {/* Spaces Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <SpaceCard
             id="boutique"
             icon={<ShoppingBag size={32} />}
@@ -138,46 +138,41 @@ const SpaceCard = ({ id, icon, title, subtitle, description, features, stats, gr
   return (
     <div 
       id={id}
-      className="group relative bg-card rounded-3xl border border-border overflow-hidden hover:shadow-lg transition-all duration-500 hover:-translate-y-2"
+      className="group relative bg-card rounded-2xl border border-border overflow-hidden hover:shadow-md transition-all"
     >
-      <div className="h-40 bg-primary relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/5" />
-        <div className="relative h-full flex flex-col items-center justify-center">
-          <div className="p-4 rounded-2xl bg-primary-foreground/20 backdrop-blur-sm text-primary-foreground mb-2">
-            {icon}
-          </div>
-          <span className="text-primary-foreground/90 text-sm font-medium">{subtitle}</span>
+      <div className="h-20 bg-primary relative overflow-hidden flex items-center gap-3 px-4">
+        <div className="p-2 rounded-lg bg-primary-foreground/20 backdrop-blur-sm text-primary-foreground">
+          {icon}
         </div>
+        <span className="text-primary-foreground/95 text-sm font-semibold">{subtitle}</span>
       </div>
 
-      <div className="p-6">
-        <h3 className="text-xl font-display font-bold text-foreground mb-2">{title}</h3>
-        <p className="text-muted-foreground mb-6 leading-relaxed">{description}</p>
+      <div className="p-4">
+        <h3 className="text-base font-display font-bold text-foreground mb-1">{title}</h3>
+        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{description}</p>
 
-        <ul className="space-y-3 mb-6">
+        <ul className="space-y-1.5 mb-3">
           {features.map((feature, index) => (
-            <li key={index} className="flex items-center gap-3 text-sm text-foreground">
-              <span className="text-primary">{feature.icon}</span>
+            <li key={index} className="flex items-center gap-2 text-xs text-foreground">
+              <span className="text-primary shrink-0">{feature.icon}</span>
               {feature.text}
             </li>
           ))}
         </ul>
 
-        <div className="flex items-center justify-between pt-4 border-t border-border">
+        <div className="flex items-center justify-between pt-2.5 border-t border-border">
           <div>
-            <div className="text-2xl font-display font-bold text-foreground">{stats.value}</div>
-            <div className="text-sm text-muted-foreground">{stats.label}</div>
+            <div className="text-lg font-display font-bold text-foreground leading-none">{stats.value}</div>
+            <div className="text-[11px] text-muted-foreground">{stats.label}</div>
           </div>
           <Link to={href}>
-            <Button variant={buttonVariant}>
+            <Button variant={buttonVariant} size="sm" className="text-xs h-8">
               Découvrir
-              <ArrowRight size={18} />
+              <ArrowRight size={14} />
             </Button>
           </Link>
         </div>
       </div>
-
-      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
     </div>
   );
 };

@@ -112,8 +112,7 @@ const StatsSection = () => {
   ];
 
   return (
-    <section className="py-16 bg-primary relative overflow-hidden">
-      {/* Background Pattern */}
+    <section className="py-8 lg:py-10 bg-primary relative overflow-hidden">
       <div className="absolute inset-0 opacity-10">
         <div 
           className="absolute inset-0"
@@ -124,12 +123,12 @@ const StatsSection = () => {
       </div>
 
       <div className="container mx-auto px-4 relative">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {statsData.map((stat, index) => (
-            <div key={index} className="text-center animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-              <div className="text-4xl lg:text-5xl font-display font-bold text-primary-foreground mb-2">
+            <div key={index} className="text-center" style={{ animationDelay: `${index * 100}ms` }}>
+              <div className="text-2xl lg:text-3xl font-display font-bold text-primary-foreground mb-0.5">
                 {loading ? (
-                  <span className="inline-block w-16 h-10 bg-primary-foreground/20 rounded animate-pulse" />
+                  <span className="inline-block w-12 h-7 bg-primary-foreground/20 rounded animate-pulse" />
                 ) : (
                   <>
                     {stat.value}
@@ -137,7 +136,7 @@ const StatsSection = () => {
                   </>
                 )}
               </div>
-              <p className="text-primary-foreground/80">{stat.label}</p>
+              <p className="text-xs text-primary-foreground/80">{stat.label}</p>
             </div>
           ))}
         </div>

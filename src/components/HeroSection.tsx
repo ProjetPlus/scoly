@@ -54,8 +54,8 @@ const HeroSection = () => {
                 Tout pour la rentrée{" "}
                 <span className="text-accent">au meilleur prix</span>
               </h1>
-              <p className="text-xs sm:text-sm text-primary-foreground/85 max-w-xl mb-3">
-                Cahiers, manuels & matériel pro — {stats.products > 0 ? `${stats.products}+ produits` : "milliers de produits"} en stock, livrés gratuitement en Côte d'Ivoire.
+              <p className="text-xs sm:text-sm text-primary-foreground/85 max-w-2xl mb-3">
+                Cahiers, manuels & matériel pro — {stats.products > 0 ? `${stats.products}+ produits` : "milliers de produits"} en stock, livrés gratuitement en Côte&nbsp;d'Ivoire.
               </p>
               <div className="flex flex-wrap gap-2">
                 <span className="inline-flex items-center gap-1.5 bg-secondary text-secondary-foreground px-3.5 py-2 rounded-md font-semibold text-xs sm:text-sm shadow-md group-hover:bg-secondary/90 transition-colors">
@@ -73,34 +73,34 @@ const HeroSection = () => {
           </div>
 
           {/* Side promos */}
-          <div className="hidden lg:flex flex-col gap-3">
+          <div className="hidden lg:flex flex-col gap-2.5">
             <Link
               to="/shop?category=scoly-primaire"
-              className="relative rounded-xl overflow-hidden bg-gradient-to-br from-secondary to-secondary-light p-4 flex flex-col justify-between min-h-[132px] text-secondary-foreground hover:shadow-lg transition-shadow"
+              className="relative rounded-xl overflow-hidden bg-gradient-to-br from-secondary to-secondary-light p-3 flex items-center justify-between min-h-[100px] text-secondary-foreground hover:shadow-lg transition-shadow"
             >
-              <div>
+              <div className="relative z-10">
                 <p className="text-[10px] font-bold uppercase tracking-wider opacity-90">Sélection</p>
-                <h3 className="font-display text-lg font-bold leading-tight mt-0.5">Kits primaire</h3>
-                <p className="text-xs opacity-90">Prêts à l'emploi</p>
+                <h3 className="font-display text-base font-bold leading-tight">Kits primaire</h3>
+                <p className="text-[11px] opacity-90">Prêts à l'emploi</p>
+                <span className="text-[11px] font-semibold inline-flex items-center gap-1 mt-1">
+                  Découvrir <ArrowRight size={11} />
+                </span>
               </div>
-              <span className="text-xs font-semibold inline-flex items-center gap-1">
-                Découvrir <ArrowRight size={12} />
-              </span>
-              <School className="absolute right-3 bottom-3 opacity-20" size={56} />
+              <School className="opacity-25 shrink-0" size={48} />
             </Link>
             <Link
               to="/shop?category=scoly-bureautique"
-              className="relative rounded-xl overflow-hidden bg-gradient-to-br from-primary to-primary-light p-4 flex flex-col justify-between min-h-[132px] text-primary-foreground hover:shadow-lg transition-shadow"
+              className="relative rounded-xl overflow-hidden bg-gradient-to-br from-primary to-primary-light p-3 flex items-center justify-between min-h-[100px] text-primary-foreground hover:shadow-lg transition-shadow"
             >
-              <div>
+              <div className="relative z-10">
                 <p className="text-[10px] font-bold uppercase tracking-wider opacity-90">Pro</p>
-                <h3 className="font-display text-lg font-bold leading-tight mt-0.5">Bureautique</h3>
-                <p className="text-xs opacity-90">Pour entreprise</p>
+                <h3 className="font-display text-base font-bold leading-tight">Bureautique</h3>
+                <p className="text-[11px] opacity-90">Pour entreprise</p>
+                <span className="text-[11px] font-semibold inline-flex items-center gap-1 mt-1">
+                  Découvrir <ArrowRight size={11} />
+                </span>
               </div>
-              <span className="text-xs font-semibold inline-flex items-center gap-1">
-                Découvrir <ArrowRight size={12} />
-              </span>
-              <Briefcase className="absolute right-3 bottom-3 opacity-20" size={56} />
+              <Briefcase className="opacity-25 shrink-0" size={48} />
             </Link>
           </div>
         </div>

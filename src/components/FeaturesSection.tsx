@@ -106,23 +106,21 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section className="py-20 lg:py-32 bg-muted/50">
+    <section className="py-10 lg:py-14 bg-muted/50">
       <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-secondary/20 text-secondary text-sm font-medium mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-6">
+          <span className="inline-block px-3 py-1 rounded-full bg-secondary/20 text-secondary text-xs font-medium mb-2">
             {currentTexts.badge}
           </span>
-          <h2 className="text-3xl lg:text-5xl font-display font-bold text-foreground mb-4">
+          <h2 className="text-2xl lg:text-3xl font-display font-bold text-foreground mb-1">
             {t.features.title}
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             {t.features.subtitle}
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {features.map((feature, index) => (
             <FeatureCard
               key={index}
@@ -148,14 +146,14 @@ interface FeatureCardProps {
 const FeatureCard = ({ icon, title, description, delay }: FeatureCardProps) => {
   return (
     <div 
-      className="group p-6 bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-md transition-all duration-300"
+      className="group p-3 sm:p-4 bg-card rounded-xl border border-border hover:border-primary/30 hover:shadow-md transition-all"
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-2 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
         {icon}
       </div>
-      <h3 className="text-lg font-display font-semibold text-foreground mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      <h3 className="text-sm font-display font-semibold text-foreground mb-0.5 leading-tight">{title}</h3>
+      <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
     </div>
   );
 };
