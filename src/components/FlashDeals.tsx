@@ -83,7 +83,7 @@ const FlashDeals = () => {
   if (deals.length === 0 || !endsAt) return null;
 
   return (
-    <section className="py-12 bg-gradient-to-r from-secondary/10 via-background to-secondary/10">
+    <section className="py-6 bg-gradient-to-r from-secondary/10 via-background to-secondary/10">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">

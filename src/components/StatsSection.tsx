@@ -112,7 +112,7 @@ const StatsSection = () => {
   ];
 
   return (
-    <section className="py-8 lg:py-10 bg-primary relative overflow-hidden">
+    <section className="py-5 lg:py-7 bg-primary relative overflow-hidden">
       <div className="absolute inset-0 opacity-10">
         <div 
           className="absolute inset-0"

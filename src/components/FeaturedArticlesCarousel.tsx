@@ -98,7 +98,7 @@ const FeaturedArticlesCarousel = () => {
   if (articles.length === 0) return null;
 
   return (
-    <section className="py-8 bg-background">
+    <section className="py-5 bg-background">
       <div className="container mx-auto px-4">
         <div className="flex items-end justify-between mb-4 gap-3">
           <div>
