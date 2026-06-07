@@ -34,10 +34,11 @@ const FeaturedProductsCarousel = () => {
   // Auto-scroll every 4 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % Math.max(products.length - 4, 1));
+      setCurrentIndex((prev) => (prev + 1) % Math.max(products.length - 5, 1));
     }, 4000);
     return () => clearInterval(interval);
   }, [products.length]);
+
 
   const fetchFeaturedProducts = async () => {
     try {
