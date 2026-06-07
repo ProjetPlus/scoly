@@ -34,10 +34,11 @@ const FeaturedProductsCarousel = () => {
   // Auto-scroll every 4 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % Math.max(products.length - 4, 1));
+      setCurrentIndex((prev) => (prev + 1) % Math.max(products.length - 5, 1));
     }, 4000);
     return () => clearInterval(interval);
   }, [products.length]);
+
 
   const fetchFeaturedProducts = async () => {
     try {
@@ -70,8 +71,9 @@ const FeaturedProductsCarousel = () => {
   };
 
   const scrollToIndex = (index: number) => {
-    setCurrentIndex(Math.max(0, Math.min(index, products.length - 5)));
+    setCurrentIndex(Math.max(0, Math.min(index, products.length - 6)));
   };
+
 
   const nextSlide = () => {
     scrollToIndex(currentIndex + 1);
@@ -99,23 +101,23 @@ const FeaturedProductsCarousel = () => {
             <Button variant="outline" size="icon" onClick={prevSlide} disabled={currentIndex === 0} className="rounded-full h-8 w-8">
               <ChevronLeft size={16} />
             </Button>
-            <Button variant="outline" size="icon" onClick={nextSlide} disabled={currentIndex >= products.length - 5} className="rounded-full h-8 w-8">
+            <Button variant="outline" size="icon" onClick={nextSlide} disabled={currentIndex >= products.length - 6} className="rounded-full h-8 w-8">
               <ChevronRight size={16} />
             </Button>
           </div>
         </div>
 
         <div className="overflow-hidden" ref={carouselRef}>
-          <div 
-            className="flex gap-2 sm:gap-3 transition-transform duration-500 ease-in-out"
-            style={{ transform: `translateX(-${currentIndex * (100 / 5)}%)` }}
+          <div
+            className="flex gap-1.5 sm:gap-2 transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${currentIndex * (100 / 6)}%)` }}
           >
             {products.map((product) => (
               <div
                 key={product.id}
-                className="flex-shrink-0 w-[40%] sm:w-[30%] md:w-[22%] lg:w-1/5 group"
+                className="flex-shrink-0 w-[45%] sm:w-[32%] md:w-[24%] lg:w-[19%] xl:w-[16.5%] group"
               >
-                <div className="bg-card rounded-lg border border-border overflow-hidden hover:shadow-md transition-all h-full flex flex-col">
+                <div className="bg-card rounded-md border border-border overflow-hidden hover:shadow-md transition-all h-full flex flex-col">
                   <Link to={`/product/${product.id}`} className="relative aspect-square block overflow-hidden">
                     <SmartImage
                       src={product.image_url}
@@ -125,33 +127,28 @@ const FeaturedProductsCarousel = () => {
                       priority={currentIndex === 0}
                     />
                     {product.discount_percent > 0 && (
-                      <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-destructive text-destructive-foreground text-[10px] font-medium rounded">
+                      <span className="absolute top-0.5 left-0.5 px-1 py-0 bg-destructive text-destructive-foreground text-[9px] font-medium rounded">
                         -{product.discount_percent}%
                       </span>
                     )}
                     {product.is_featured && (
-                      <span className="absolute top-1 right-1 px-1.5 py-0.5 bg-accent text-accent-foreground text-[10px] font-medium rounded">
+                      <span className="absolute top-0.5 right-0.5 px-1 py-0 bg-accent text-accent-foreground text-[9px] font-medium rounded">
                         ⭐
                       </span>
                     )}
                   </Link>
-                  <div className="p-2 flex flex-col flex-1">
+                  <div className="p-1.5 flex flex-col flex-1 gap-1">
                     <Link to={`/product/${product.id}`}>
-                      <h3 className="font-medium text-foreground hover:text-primary transition-colors line-clamp-2 text-xs leading-snug mb-1">
+                      <h3 className="font-medium text-foreground hover:text-primary transition-colors line-clamp-2 text-[11px] leading-tight">
                         {getLocalizedName(product)}
                       </h3>
                     </Link>
-                    <div className="flex items-center gap-0.5 mb-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={9} className="fill-accent text-accent" />
-                      ))}
-                    </div>
-                    <div className="flex items-baseline gap-1.5 flex-wrap mb-1.5 mt-auto">
-                      <span className="text-sm font-bold text-primary tabular-nums">
+                    <div className="flex items-baseline gap-1 flex-wrap mt-auto">
+                      <span className="text-xs font-bold text-primary tabular-nums">
                         {formatPrice(product.price)}
                       </span>
                       {product.original_price && product.original_price > product.price && (
-                        <span className="text-[10px] text-muted-foreground line-through tabular-nums">
+                        <span className="text-[9px] text-muted-foreground line-through tabular-nums">
                           {formatPrice(product.original_price)}
                         </span>
                       )}
@@ -159,10 +156,10 @@ const FeaturedProductsCarousel = () => {
                     <Button
                       variant="hero"
                       size="sm"
-                      className="w-full text-xs h-7"
+                      className="w-full text-[11px] h-6 px-1"
                       onClick={() => addToCart(product.id)}
                     >
-                      <ShoppingCart size={12} />
+                      <ShoppingCart size={11} />
                       <span className="ml-1">Acheter</span>
                     </Button>
                   </div>
@@ -174,7 +171,8 @@ const FeaturedProductsCarousel = () => {
 
         {/* Indicators */}
         <div className="flex justify-center gap-2 mt-4">
-          {Array.from({ length: Math.max(products.length - 4, 1) }).map((_, i) => (
+          {Array.from({ length: Math.max(products.length - 5, 1) }).map((_, i) => (
+
             <button
               key={i}
               onClick={() => scrollToIndex(i)}
