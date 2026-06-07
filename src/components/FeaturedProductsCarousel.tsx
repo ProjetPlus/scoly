@@ -71,8 +71,9 @@ const FeaturedProductsCarousel = () => {
   };
 
   const scrollToIndex = (index: number) => {
-    setCurrentIndex(Math.max(0, Math.min(index, products.length - 5)));
+    setCurrentIndex(Math.max(0, Math.min(index, products.length - 6)));
   };
+
 
   const nextSlide = () => {
     scrollToIndex(currentIndex + 1);
