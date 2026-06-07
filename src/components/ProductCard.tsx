@@ -96,27 +96,27 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
         )}
       </Link>
 
-      <div className={`flex flex-col flex-1 ${compact ? "p-2" : "p-2.5 sm:p-3"}`}>
+      <div className={`flex flex-col flex-1 ${compact ? "p-1.5" : "p-2"}`}>
         <Link to={`/shop/product/${product.id}`} className="flex-1">
-          <h3 className="text-foreground hover:text-primary transition-colors line-clamp-2 text-xs sm:text-sm leading-snug min-h-[2.5em]">
+          <h3 className="text-foreground hover:text-primary transition-colors line-clamp-2 text-xs leading-snug min-h-[2.4em]">
             {name}
           </h3>
         </Link>
 
-        <div className="mt-1.5 sm:mt-2">
-          <div className="flex items-baseline gap-1.5 flex-wrap">
-            <span className="text-sm sm:text-base lg:text-lg font-bold text-primary tabular-nums">
+        <div className="mt-1">
+          <div className="flex items-baseline gap-1 flex-wrap">
+            <span className="text-sm sm:text-base font-bold text-primary tabular-nums">
               {formatPrice(product.price)}
             </span>
             {product.original_price && product.original_price > product.price && (
-              <span className="text-[11px] sm:text-xs text-muted-foreground line-through tabular-nums">
+              <span className="text-[10px] text-muted-foreground line-through tabular-nums">
                 {formatPrice(product.original_price)}
               </span>
             )}
           </div>
           {product.free_shipping !== false && (
-            <p className="mt-1 text-[10px] sm:text-[11px] text-secondary font-medium flex items-center gap-1">
-              <Truck size={10} /> Livraison gratuite
+            <p className="mt-0.5 text-[10px] text-secondary font-medium flex items-center gap-1">
+              <Truck size={9} /> Livraison gratuite
             </p>
           )}
         </div>
@@ -124,11 +124,11 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
         <Button
           variant="default"
           size="sm"
-          className="w-full mt-2 text-xs h-8 sm:h-9"
+          className="w-full mt-1.5 text-xs h-7"
           onClick={() => addToCart(product.id)}
           disabled={outOfStock}
         >
-          <ShoppingCart size={13} />
+          <ShoppingCart size={12} />
           <span className="ml-1">{outOfStock ? "Indisponible" : "Ajouter"}</span>
         </Button>
       </div>
