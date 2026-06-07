@@ -174,7 +174,7 @@ const FeaturedProductsCarousel = () => {
 
         {/* Indicators */}
         <div className="flex justify-center gap-2 mt-4">
-          {Array.from({ length: Math.max(products.length - 3, 1) }).map((_, i) => (
+          {Array.from({ length: Math.max(products.length - 4, 1) }).map((_, i) => (
             <button
               key={i}
               onClick={() => scrollToIndex(i)}
