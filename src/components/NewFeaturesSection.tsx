@@ -49,7 +49,7 @@ const NewFeaturesSection = () => {
   ];
 
   return (
-    <section className="py-8 lg:py-12 bg-background">
+    <section className="py-5 lg:py-8 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-6">
           <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-2">

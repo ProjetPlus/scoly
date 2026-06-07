@@ -37,7 +37,7 @@ const RecentlyViewed = () => {
   if (products.length === 0) return null;
 
   return (
-    <section className="py-8 bg-muted/30">
+    <section className="py-5 bg-muted/30">
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-2 mb-4">
           <Clock size={20} className="text-primary" />

@@ -106,7 +106,7 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section className="py-10 lg:py-14 bg-muted/50">
+    <section className="py-6 lg:py-8 bg-muted/50">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-6">
           <span className="inline-block px-3 py-1 rounded-full bg-secondary/20 text-secondary text-xs font-medium mb-2">

@@ -14,7 +14,7 @@ const PaymentSection = () => {
   const benefits = t.payment.benefits;
 
   return (
-    <section className="py-10 lg:py-14 bg-background overflow-hidden">
+    <section className="py-6 lg:py-8 bg-background overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center">
           <div>

@@ -28,7 +28,7 @@ const CTASection = () => {
   const currentTexts = texts[language] || texts.fr;
   
   return (
-    <section className="py-10 lg:py-14 bg-background relative overflow-hidden">
+    <section className="py-6 lg:py-8 bg-background relative overflow-hidden">
       <div className="absolute top-0 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-secondary/5 rounded-full blur-3xl" />
 
