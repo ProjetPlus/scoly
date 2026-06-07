@@ -96,44 +96,43 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
         )}
       </Link>
 
-      <div className={`flex flex-col flex-1 ${compact ? "p-1.5" : "p-2"}`}>
+      <div className={`flex flex-col flex-1 ${compact ? "p-1" : "p-1.5"} gap-0.5`}>
         <Link to={`/shop/product/${product.id}`} className="flex-1">
-          <h3 className="text-foreground hover:text-primary transition-colors line-clamp-2 text-xs leading-snug min-h-[2.4em]">
+          <h3 className="text-foreground hover:text-primary transition-colors line-clamp-2 text-[11px] leading-tight min-h-[2.2em]">
             {name}
           </h3>
         </Link>
 
-        <div className="mt-1">
-          <div className="flex items-baseline gap-1 flex-wrap">
-            <span className="text-sm sm:text-base font-bold text-primary tabular-nums">
-              {formatPrice(product.price)}
+        <div className="flex items-baseline gap-1 flex-wrap">
+          <span className="text-xs sm:text-sm font-bold text-primary tabular-nums">
+            {formatPrice(product.price)}
+          </span>
+          {product.original_price && product.original_price > product.price && (
+            <span className="text-[9px] text-muted-foreground line-through tabular-nums">
+              {formatPrice(product.original_price)}
             </span>
-            {product.original_price && product.original_price > product.price && (
-              <span className="text-[10px] text-muted-foreground line-through tabular-nums">
-                {formatPrice(product.original_price)}
-              </span>
-            )}
-          </div>
-          {product.free_shipping !== false && (
-            <p className="mt-0.5 text-[10px] text-secondary font-medium flex items-center gap-1">
-              <Truck size={9} /> Livraison gratuite
-            </p>
           )}
         </div>
+        {product.free_shipping !== false && (
+          <p className="text-[9px] text-secondary font-medium flex items-center gap-0.5">
+            <Truck size={8} /> Livraison gratuite
+          </p>
+        )}
 
         <Button
           variant="default"
           size="sm"
-          className="w-full mt-1.5 text-xs h-7"
+          className="w-full mt-1 text-[11px] h-6 px-1"
           onClick={() => addToCart(product.id)}
           disabled={outOfStock}
         >
-          <ShoppingCart size={12} />
+          <ShoppingCart size={11} />
           <span className="ml-1">{outOfStock ? "Indisponible" : "Ajouter"}</span>
         </Button>
       </div>
     </article>
   );
 };
+
 
 export default ProductCard;
