@@ -99,7 +99,7 @@ const FeaturedProductsCarousel = () => {
             <Button variant="outline" size="icon" onClick={prevSlide} disabled={currentIndex === 0} className="rounded-full h-8 w-8">
               <ChevronLeft size={16} />
             </Button>
-            <Button variant="outline" size="icon" onClick={nextSlide} disabled={currentIndex >= products.length - 4} className="rounded-full h-8 w-8">
+            <Button variant="outline" size="icon" onClick={nextSlide} disabled={currentIndex >= products.length - 5} className="rounded-full h-8 w-8">
               <ChevronRight size={16} />
             </Button>
           </div>
