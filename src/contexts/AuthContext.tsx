@@ -38,7 +38,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { toast } = useToast();
 
   const fetchRoles = async (userId: string) => {
-    setRolesLoading(true);
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -47,18 +46,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) {
         console.error('Error fetching roles:', error);
-        setRoles([]);
-        setIsAdmin(false);
+        // Ne PAS vider les rôles sur erreur transitoire — garde l'état précédent pour éviter le clignotement du menu
         return;
       }
 
       const nextRoles = (data || []).map((r) => r.role as any);
-      setRoles(nextRoles);
-      setIsAdmin(nextRoles.includes('admin'));
+      // Mise à jour conditionnelle : on évite de remplacer la référence si rien n'a changé
+      setRoles((prev) => {
+        if (prev.length === nextRoles.length && prev.every((r) => nextRoles.includes(r))) {
+          return prev;
+        }
+        return nextRoles;
+      });
+      setIsAdmin((prev) => {
+        const next = nextRoles.includes('admin');
+        return prev === next ? prev : next;
+      });
     } finally {
       setRolesLoading(false);
     }
   };
+
 
   const refreshRoles = async () => {
     if (!user?.id) return;
