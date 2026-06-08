@@ -83,51 +83,66 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     let rolesChannel: ReturnType<typeof supabase.channel> | null = null;
+    let currentUserId: string | null = null;
 
-    // Set up auth state listener FIRST
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    const setupRolesForUser = (userId: string) => {
+      if (currentUserId === userId && rolesChannel) {
+        // Même utilisateur, même canal : ne rien faire (évite la cascade de re-fetch/clignotement)
+        return;
+      }
+      currentUserId = userId;
 
-      // Reset previous subscription
       if (rolesChannel) {
         supabase.removeChannel(rolesChannel);
         rolesChannel = null;
       }
 
-      if (session?.user) {
-        // Load roles immediately
-        setTimeout(() => {
-          fetchRoles(session.user.id);
-        }, 0);
+      setTimeout(() => fetchRoles(userId), 0);
 
-        // Realtime: keep roles in sync when admin changes them
-        rolesChannel = supabase
-          .channel(`user-roles-${session.user.id}`)
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'user_roles',
-              filter: `user_id=eq.${session.user.id}`,
-            },
-            () => fetchRoles(session.user!.id)
-          )
-          .subscribe();
+      rolesChannel = supabase
+        .channel(`user-roles-${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_roles',
+            filter: `user_id=eq.${userId}`,
+          },
+          () => fetchRoles(userId)
+        )
+        .subscribe();
+    };
+
+    // Set up auth state listener FIRST
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser((prev) => {
+        const next = session?.user ?? null;
+        // Conserver la même référence si même utilisateur — évite re-renders inutiles
+        if (prev?.id === next?.id) return prev;
+        return next;
+      });
+      setLoading(false);
+
+      if (session?.user) {
+        setupRolesForUser(session.user.id);
       } else {
+        if (rolesChannel) {
+          supabase.removeChannel(rolesChannel);
+          rolesChannel = null;
+        }
+        currentUserId = null;
         setRoles([]);
         setIsAdmin(false);
         setRolesLoading(false);
       }
     });
 
-    // THEN check for existing session — roles are handled by onAuthStateChange above
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      // Only set loading state if onAuthStateChange hasn't fired yet
       if (!session?.user) {
         setLoading(false);
         setRolesLoading(false);
@@ -136,6 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     return () => {
       subscription.unsubscribe();
+
       if (rolesChannel) supabase.removeChannel(rolesChannel);
     };
   }, []);
