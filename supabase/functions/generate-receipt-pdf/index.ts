@@ -79,6 +79,22 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
+    // Require authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const authed = createClient(SUPABASE_URL, anonKey, { global: { headers: { Authorization: authHeader } } });
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsErr } = await authed.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const userId = claimsData.claims.sub as string;
+
     const { order_id, download } = await req.json();
     if (!order_id) return new Response(JSON.stringify({ error: 'order_id requis' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -87,6 +103,17 @@ Deno.serve(async (req) => {
     const { data: order, error: oErr } = await sb.from('orders').select('*').eq('id', order_id).maybeSingle();
     if (oErr || !order) return new Response(JSON.stringify({ error: 'Commande introuvable' }),
       { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+    // Ownership / role check
+    const { data: roles } = await sb.from('user_roles').select('role').eq('user_id', userId);
+    const roleList = (roles || []).map((r: any) => r.role);
+    const isStaff = roleList.includes('admin') || roleList.includes('moderator');
+    const isOwner = order.user_id === userId;
+    const isDelivery = order.delivery_user_id === userId;
+    if (!isStaff && !isOwner && !isDelivery) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     const { data: items } = await sb.from('order_items')
       .select('*, products(name_fr)').eq('order_id', order_id);

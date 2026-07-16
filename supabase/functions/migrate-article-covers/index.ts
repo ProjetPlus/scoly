@@ -20,10 +20,39 @@ function base64ToBytes(b64: string): Uint8Array {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+  const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+  // Require admin authentication
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const authed = createClient(SUPABASE_URL, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const token = authHeader.replace("Bearer ", "");
+  const { data: claimsData, error: claimsErr } = await authed.auth.getClaims(token);
+  if (claimsErr || !claimsData?.claims) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const userId = claimsData.claims.sub as string;
+  const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+  const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+  const roleList = (roles || []).map((r: any) => r.role);
+  if (!roleList.includes("admin")) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   const { data: rows, error } = await supabase
     .from("articles")
