@@ -42,7 +42,7 @@ const KitCoverFallback = ({ kit, schoolName }: { kit: Kit; schoolName?: string }
     <div className="relative z-10 flex flex-col items-center gap-2 p-4 text-center">
       <Sparkles className="h-8 w-8" />
       <p className="font-display text-lg font-bold leading-tight">
-        {CATEGORY_LABELS[kit.category || ""] || "Kit École"}
+        {CATEGORY_LABELS[kit.category || ""] || "Kit Scolaire"}
       </p>
       <p className="text-xs opacity-90">{kit.grade_level}</p>
       {schoolName ? <p className="text-[11px] font-semibold uppercase tracking-wide opacity-90">{schoolName}</p> : null}
@@ -110,7 +110,7 @@ const KitsEcole = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>Kit École — Trouvez le kit officiel de votre établissement | Scoly</title>
+        <title>Kit Scolaire — Trouvez le kit officiel de votre établissement | Scoly</title>
         <meta
           name="description"
           content="Recherchez votre établissement scolaire et retrouvez le kit officiel correspondant à votre niveau. Kits cahiers, livres et kits complets."
@@ -123,7 +123,7 @@ const KitsEcole = () => {
             <div className="max-w-3xl mx-auto text-center space-y-4">
               <Badge variant="secondary" className="mx-auto">Nouveau · Kits officiels par établissement</Badge>
               <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight">
-                Trouvez le Kit École de votre établissement
+                Trouvez le Kit Scolaire de votre établissement
               </h1>
               <p className="text-muted-foreground text-base md:text-lg">
                 Recherchez votre école ou saisissez votre code référent pour accéder aux kits officiels validés.

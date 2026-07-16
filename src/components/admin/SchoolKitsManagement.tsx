@@ -178,7 +178,7 @@ const SchoolKitsManagement = () => {
           if (error) throw error;
         }
       }
-      toast.success("Kit École enregistré.");
+      toast.success("Kit Scolaire enregistré.");
       setOpen(false);
       await load();
     } catch (e: any) {
@@ -204,7 +204,7 @@ const SchoolKitsManagement = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" /> Kits École
+              <Package className="h-5 w-5" /> Kits Scolaires
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Créez et gérez les kits officiels rattachés à chaque établissement partenaire.
@@ -213,12 +213,12 @@ const SchoolKitsManagement = () => {
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button onClick={openCreate}>
-                <Plus className="h-4 w-4 mr-2" /> Nouveau Kit École
+                <Plus className="h-4 w-4 mr-2" /> Nouveau Kit Scolaire
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{form.id ? "Modifier le Kit École" : "Créer un Kit École"}</DialogTitle>
+                <DialogTitle>{form.id ? "Modifier le Kit Scolaire" : "Créer un Kit Scolaire"}</DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -376,7 +376,7 @@ const SchoolKitsManagement = () => {
           {loading ? (
             <p className="text-sm text-muted-foreground">Chargement…</p>
           ) : kits.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aucun Kit École pour le moment.</p>
+            <p className="text-sm text-muted-foreground">Aucun Kit Scolaire pour le moment.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
