@@ -11,8 +11,14 @@ double_confirm_changes = true
 [functions.generate-kit-from-docs]
 verify_jwt = true
 
-[functions.bulk-create-products]
-verify_jwt = false
+[functions.generate-receipt-pdf]
+verify_jwt = true
+
+[functions.send-sms]
+verify_jwt = true
 
 [functions.migrate-article-covers]
+verify_jwt = true
+
+[functions.bulk-create-products]
 verify_jwt = false
