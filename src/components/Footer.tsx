@@ -33,7 +33,7 @@ const Footer = () => {
       title: "À propos de Scoly",
       links: [
         { label: "Qui sommes-nous", href: "/about" },
-        { label: "Kits École", href: "/kits-ecole" },
+        { label: "Kits Scolaires", href: "/kits-ecole" },
         { label: "Programme parrainage", href: "/parrainage" },
         { label: "Actualités", href: "/actualites" },
       ],
