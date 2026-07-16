@@ -19,12 +19,15 @@ export interface ProductCardData {
   image_url: string | null;
   is_featured?: boolean;
   free_shipping?: boolean;
+  created_at?: string | null;
 }
 
 interface ProductCardProps {
   product: ProductCardData;
   compact?: boolean;
 }
+
+const SEVEN_DAYS_MS = 7 * 24 * 3600 * 1000;
 
 const ProductCard = ({ product, compact = false }: ProductCardProps) => {
   const { language, t } = useLanguage();
@@ -43,9 +46,13 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
   const inWishlist = isInWishlist(product.id);
   const outOfStock = product.stock === 0;
   const hasDiscount = !!(product.discount_percent && product.discount_percent > 0);
+  const isNew =
+    !hasDiscount &&
+    product.created_at &&
+    Date.now() - new Date(product.created_at).getTime() < SEVEN_DAYS_MS;
 
   return (
-    <article className="group relative bg-card rounded-lg sm:rounded-xl border border-border/70 hover:border-primary/40 hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden">
+    <article className="group relative bg-card rounded-lg sm:rounded-xl border border-border/70 hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col overflow-hidden">
       <Link
         to={`/shop/product/${product.id}`}
         className="relative aspect-square block overflow-hidden bg-muted/20"
@@ -57,17 +64,26 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           fallbackSrc="/placeholder.svg"
           priority={false}
+          width={320}
+          height={320}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, (max-width: 1536px) 20vw, 16vw"
         />
 
-        {/* Discount badge - Jumia style top-left */}
+        {/* Animated discount badge */}
         {hasDiscount && (
-          <div className="absolute top-1.5 left-1.5 bg-secondary text-secondary-foreground font-bold text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded">
+          <div className="absolute top-1 left-1 bg-secondary text-secondary-foreground font-bold text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded shadow-sm animate-pulse">
             -{product.discount_percent}%
           </div>
         )}
 
-        {product.is_featured && !hasDiscount && (
-          <div className="absolute top-1.5 left-1.5 bg-accent text-accent-foreground font-bold text-[10px] px-1.5 py-0.5 rounded">
+        {isNew && (
+          <div className="absolute top-1 left-1 bg-accent text-accent-foreground font-bold text-[9px] px-1.5 py-0.5 rounded shadow-sm">
+            NOUVEAU
+          </div>
+        )}
+
+        {product.is_featured && !hasDiscount && !isNew && (
+          <div className="absolute top-1 left-1 bg-primary text-primary-foreground font-bold text-[9px] px-1.5 py-0.5 rounded">
             ★ TOP
           </div>
         )}
@@ -79,17 +95,17 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
             e.preventDefault();
             toggleWishlist(product.id);
           }}
-          className="absolute top-1.5 right-1.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-card/95 backdrop-blur-sm shadow-sm hover:bg-card flex items-center justify-center transition-transform hover:scale-110"
+          className="absolute top-1 right-1 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-card/95 backdrop-blur-sm shadow-sm hover:bg-card flex items-center justify-center transition-transform hover:scale-110"
         >
           <Heart
-            size={14}
+            size={12}
             className={inWishlist ? "fill-destructive text-destructive" : "text-foreground/70"}
           />
         </button>
 
         {outOfStock && (
           <div className="absolute inset-0 bg-background/70 backdrop-blur-[1px] flex items-center justify-center">
-            <span className="px-3 py-1 rounded-full bg-foreground/90 text-background text-xs font-semibold">
+            <span className="px-2 py-0.5 rounded-full bg-foreground/90 text-background text-[10px] font-semibold">
               Épuisé
             </span>
           </div>
@@ -98,23 +114,23 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
 
       <div className={`flex flex-col flex-1 ${compact ? "p-1" : "p-1.5"} gap-0.5`}>
         <Link to={`/shop/product/${product.id}`} className="flex-1">
-          <h3 className="text-foreground hover:text-primary transition-colors line-clamp-2 text-[11px] leading-tight min-h-[2.2em]">
+          <h3 className="text-foreground hover:text-primary transition-colors line-clamp-2 text-[10.5px] sm:text-[11px] leading-tight min-h-[2.2em]">
             {name}
           </h3>
         </Link>
 
         <div className="flex items-baseline gap-1 flex-wrap">
-          <span className="text-xs sm:text-sm font-bold text-primary tabular-nums">
+          <span className="text-[11px] sm:text-sm font-bold text-primary tabular-nums">
             {formatPrice(product.price)}
           </span>
           {product.original_price && product.original_price > product.price && (
-            <span className="text-[9px] text-muted-foreground line-through tabular-nums">
+            <span className="text-[8px] sm:text-[9px] text-muted-foreground line-through tabular-nums">
               {formatPrice(product.original_price)}
             </span>
           )}
         </div>
         {product.free_shipping !== false && (
-          <p className="text-[9px] text-secondary font-medium flex items-center gap-0.5">
+          <p className="text-[8px] sm:text-[9px] text-secondary font-medium flex items-center gap-0.5">
             <Truck size={8} /> Livraison gratuite
           </p>
         )}
@@ -122,17 +138,16 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
         <Button
           variant="default"
           size="sm"
-          className="w-full mt-1 text-[11px] h-6 px-1"
+          className="w-full mt-1 text-[10px] sm:text-[11px] h-6 px-1"
           onClick={() => addToCart(product.id)}
           disabled={outOfStock}
         >
-          <ShoppingCart size={11} />
+          <ShoppingCart size={10} />
           <span className="ml-1">{outOfStock ? "Indisponible" : "Ajouter"}</span>
         </Button>
       </div>
     </article>
   );
 };
-
 
 export default ProductCard;

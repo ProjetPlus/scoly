@@ -20,9 +20,16 @@ interface ProductFormProps {
 
 type ProductType = "book" | "school_supply" | "office";
 
-type Cycle = "primary" | "secondary" | "university" | "other";
+type Cycle = "preschool" | "primary" | "secondary" | "university" | "other";
 
 const subjectsByCycle: Record<Cycle, { value: string; label: string }[]> = {
+  preschool: [
+    { value: "eveil", label: "Éveil" },
+    { value: "graphisme", label: "Graphisme" },
+    { value: "prelecture", label: "Pré-lecture" },
+    { value: "premaths", label: "Pré-mathématiques" },
+    { value: "coloriage", label: "Coloriage" },
+  ],
   primary: [
     { value: "francais", label: "Français" },
     { value: "maths", label: "Mathématiques" },
@@ -115,6 +122,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }: ProductFormPro
           typeSchool: "Fourniture scolaire",
           typeOffice: "Bureautique",
           cycle: "Cycle",
+          cyclePreschool: "Maternelle",
           cyclePrimary: "Primaire",
           cycleSecondary: "Secondaire",
           cycleUniversity: "Université",
@@ -158,6 +166,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }: ProductFormPro
           typeSchool: "School supply",
           typeOffice: "Office",
           cycle: "Cycle",
+          cyclePreschool: "Preschool",
           cyclePrimary: "Primary",
           cycleSecondary: "Secondary",
           cycleUniversity: "University",
@@ -201,6 +210,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }: ProductFormPro
           typeSchool: "Schulbedarf",
           typeOffice: "Bürobedarf",
           cycle: "Zyklus",
+          cyclePreschool: "Kindergarten",
           cyclePrimary: "Grundschule",
           cycleSecondary: "Sekundarstufe",
           cycleUniversity: "Universität",
@@ -244,6 +254,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }: ProductFormPro
           typeSchool: "Útil escolar",
           typeOffice: "Oficina",
           cycle: "Ciclo",
+          cyclePreschool: "Preescolar",
           cyclePrimary: "Primaria",
           cycleSecondary: "Secundaria",
           cycleUniversity: "Universidad",
@@ -292,6 +303,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }: ProductFormPro
     const slug = (category?.slug || "").toLowerCase();
 
     const isOffice = slug.includes("bureautique") || slug.includes("office");
+    const isPreschool = slug.includes("maternelle") || slug.includes("prescolaire") || slug.includes("preschool");
     const isUniversity = slug.includes("universite") || slug.includes("university");
     const isSecondary =
       slug.includes("secondaire") || slug.includes("secondary") || slug.includes("college") || slug.includes("lycee");
@@ -301,7 +313,8 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }: ProductFormPro
       ...prev,
       is_office_supply: isOffice,
       product_type: isOffice ? "office" : prev.product_type,
-      cycle: isPrimary ? "primary" : isSecondary ? "secondary" : isUniversity ? "university" : prev.cycle,
+      cycle: isPreschool ? "preschool" : isPrimary ? "primary" : isSecondary ? "secondary" : isUniversity ? "university" : prev.cycle,
+      education_level: isPreschool && !prev.education_level ? "Maternelle" : prev.education_level,
     }));
   }, [formData.category_id, categories]);
 
@@ -420,9 +433,15 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }: ProductFormPro
 
     setUploading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Vous devez être connecté");
+        setUploading(false);
+        return;
+      }
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `products/${fileName}`;
+      const filePath = `${user.id}/products/${fileName}`;
 
       const { error: uploadError } = await supabase.storage.from("product-images").upload(filePath, file);
 
@@ -600,6 +619,7 @@ const ProductForm = ({ product, categories, onSubmit, onCancel }: ProductFormPro
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="preschool">{t.cyclePreschool}</SelectItem>
                 <SelectItem value="primary">{t.cyclePrimary}</SelectItem>
                 <SelectItem value="secondary">{t.cycleSecondary}</SelectItem>
                 <SelectItem value="university">{t.cycleUniversity}</SelectItem>

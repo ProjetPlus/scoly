@@ -494,20 +494,20 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-full min-w-0 space-y-6 overflow-x-hidden">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">{t.dashboard}</h1>
-          <p className="text-muted-foreground">{t.overview}</p>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-display font-bold text-foreground leading-tight">{t.dashboard}</h1>
+          <p className="text-muted-foreground leading-snug">{t.overview}</p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:w-auto sm:flex-wrap sm:gap-3">
+          <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
             <Activity className="h-3 w-3 text-emerald-500 animate-pulse" />
-            <span>{t.realtime}</span>
+            <span className="truncate">{t.realtime}</span>
           </div>
           <Select value={period} onValueChange={(v: any) => setPeriod(v)}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="h-10 w-full min-w-0 sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -517,10 +517,10 @@ const AdminDashboard = () => {
               <SelectItem value="365">{t.thisYear}</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="icon" onClick={fetchAllData} disabled={loading}>
+          <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={fetchAllData} disabled={loading} aria-label="Actualiser">
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
           </Button>
-          <Button variant="outline" onClick={exportToCSV}>
+          <Button variant="outline" className="col-span-3 h-10 w-full sm:col-span-1 sm:w-auto" onClick={exportToCSV}>
             <Download className="h-4 w-4 mr-2" />
             {t.export}
           </Button>
@@ -528,7 +528,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid min-w-0 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={t.totalRevenue}
           value={formatCurrency(stats.totalRevenue)}
@@ -560,7 +560,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Engagement Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid min-w-0 grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <Card className="border bg-card shadow-sm">
           <CardContent className="pt-4 pb-4 text-center">
             <Eye className="h-5 w-5 mx-auto text-primary mb-1" />
@@ -592,17 +592,17 @@ const AdminDashboard = () => {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid min-w-0 grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue Area Chart */}
-        <Card className="shadow-lg border-border/50">
+        <Card className="min-w-0 shadow-lg border-border/50">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-semibold">{t.monthlyRevenueChart}</CardTitle>
             <CardDescription>
               {t.lastUpdated}: {lastUpdate.toLocaleTimeString(language === 'en' ? 'en-US' : 'fr-FR')}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="min-w-0 overflow-hidden px-2 sm:px-6">
+            <ResponsiveContainer width="100%" height={260} minWidth={0}>
               <AreaChart data={monthlyData}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -636,12 +636,12 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Orders Chart */}
-        <Card className="shadow-lg border-border/50">
+        <Card className="min-w-0 shadow-lg border-border/50">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-semibold">{t.ordersEvolution}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="min-w-0 overflow-hidden px-2 sm:px-6">
+            <ResponsiveContainer width="100%" height={260} minWidth={0}>
               <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
@@ -670,9 +670,9 @@ const AdminDashboard = () => {
       </div>
 
       {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid min-w-0 grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top Products */}
-        <Card className="lg:col-span-2 shadow-lg border-border/50">
+        <Card className="min-w-0 lg:col-span-2 shadow-lg border-border/50">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">{t.topProducts}</CardTitle>
           </CardHeader>
@@ -707,11 +707,11 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Order Status Distribution */}
-        <Card className="shadow-lg border-border/50">
+        <Card className="min-w-0 shadow-lg border-border/50">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">{t.ordersByStatus}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0 overflow-hidden">
             {stats.totalOrders === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <ShoppingBag className="h-12 w-12 mb-4 opacity-50" />
@@ -759,12 +759,12 @@ const AdminDashboard = () => {
       </div>
 
       {/* Recent Orders */}
-      <Card className="shadow-lg border-border/50">
+      <Card className="min-w-0 shadow-lg border-border/50">
         <CardHeader>
           <CardTitle className="text-lg font-semibold">{t.recentOrders}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <div className="max-w-full overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
@@ -831,12 +831,12 @@ const StatsCard = ({ title, value, subtitle, icon, trend, color }: StatsCardProp
   };
 
   return (
-    <Card className={cn("border shadow-lg transition-all hover:shadow-xl", colorClasses[color])}>
-      <CardContent className="pt-6">
-        <div className="flex items-start justify-between">
-          <div>
+    <Card className={cn("min-w-0 border shadow-lg transition-all hover:shadow-xl", colorClasses[color])}>
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold mt-1">{value}</p>
+            <p className="text-2xl font-bold mt-1 break-words leading-tight">{value}</p>
             {subtitle && (
               <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
             )}
@@ -850,7 +850,7 @@ const StatsCard = ({ title, value, subtitle, icon, trend, color }: StatsCardProp
               </div>
             )}
           </div>
-          <div className={cn("p-3 rounded-xl bg-background/50", iconColors[color])}>
+          <div className={cn("hidden shrink-0 p-3 rounded-xl bg-background/50 sm:block", iconColors[color])}>
             {icon}
           </div>
         </div>

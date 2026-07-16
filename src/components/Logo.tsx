@@ -1,4 +1,4 @@
-import logoImage from "@/assets/logo-scoly.png";
+const logoImage = "/logo-scoly.png";
 
 interface LogoProps {
   variant?: "default" | "white";

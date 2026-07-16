@@ -35,6 +35,12 @@ const MultiImageUpload = ({
     const newImages: string[] = [];
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Vous devez être connecté pour téléverser des images");
+        setUploading(false);
+        return;
+      }
       for (const file of Array.from(files)) {
         if (!file.type.startsWith("image/")) {
           toast.error(`${file.name} n'est pas une image valide`);
@@ -47,7 +53,7 @@ const MultiImageUpload = ({
         }
 
         const fileExt = file.name.split(".").pop();
-        const fileName = `products/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        const fileName = `${user.id}/products/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from(bucket)

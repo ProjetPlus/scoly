@@ -13,6 +13,52 @@ serve(async (req) => {
   }
 
   try {
+    // Require authentication to prevent the function from being used as a spam relay
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authentification requise' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claims, error: authErr } = await userClient.auth.getClaims(
+      authHeader.replace('Bearer ', '')
+    );
+    if (authErr || !claims?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Session invalide' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Rate limit: 3 messages per hour per user, 5 per hour per IP
+    const adminClient = createClient(supabaseUrl, serviceKey);
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const [{ data: userRl }, { data: ipRl }] = await Promise.all([
+      adminClient.rpc('check_rate_limit', {
+        _identifier: `contact_user_${claims.claims.sub}`,
+        _action_type: 'send_contact_email',
+        _max_attempts: 3, _window_seconds: 3600, _block_seconds: 3600,
+      }),
+      adminClient.rpc('check_rate_limit', {
+        _identifier: `contact_ip_${ip}`,
+        _action_type: 'send_contact_email',
+        _max_attempts: 5, _window_seconds: 3600, _block_seconds: 3600,
+      }),
+    ]);
+    if ((userRl?.[0] && !userRl[0].allowed) || (ipRl?.[0] && !ipRl[0].allowed)) {
+      return new Response(
+        JSON.stringify({ error: 'Trop de messages envoyés. Réessayez plus tard.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { name, email, subject, message } = await req.json();
 
     // Server-side validation

@@ -5,6 +5,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const categoryTiles = [
+  { name: "Maternelle", slug: "scoly-maternelle", icon: GraduationCap, color: "from-accent to-secondary-light" },
   { name: "Primaire", slug: "scoly-primaire", icon: School, color: "from-primary to-primary-light" },
   { name: "Secondaire", slug: "scoly-secondaire", icon: BookOpen, color: "from-secondary to-secondary-light" },
   { name: "Universitaire", slug: "scoly-universite", icon: GraduationCap, color: "from-primary-dark to-primary" },
@@ -62,11 +63,11 @@ const HeroSection = () => {
                   Acheter maintenant <ArrowRight size={14} />
                 </span>
                 <Link
-                  to="/kits"
+                  to="/kits-ecole"
                   onClick={(e) => e.stopPropagation()}
                   className="inline-flex items-center gap-1.5 bg-primary-foreground/10 hover:bg-primary-foreground/20 backdrop-blur-md text-primary-foreground border border-primary-foreground/30 px-3.5 py-2 rounded-md font-medium text-xs sm:text-sm"
                 >
-                  Voir les kits
+                  Kits École
                 </Link>
               </div>
             </div>
@@ -106,7 +107,7 @@ const HeroSection = () => {
         </div>
 
         {/* Category tiles - Jumia style */}
-        <div className="mt-4 grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3">
+        <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
           {categoryTiles.map((c) => {
             const Icon = c.icon;
             return (

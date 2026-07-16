@@ -47,9 +47,10 @@ serve(async (req) => {
 
     const { title, description } = await req.json();
 
-    if (!title) {
+    if (!title || typeof title !== 'string' || title.length > 300 ||
+        (description && (typeof description !== 'string' || description.length > 1000))) {
       return new Response(
-        JSON.stringify({ error: "Title is required" }),
+        JSON.stringify({ error: "Invalid input (title required, max 300/1000 chars)" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

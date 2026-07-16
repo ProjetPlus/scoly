@@ -21,11 +21,8 @@ const Unsubscribe = () => {
         return;
       }
       if (token) {
-        const { error } = await supabase
-          .from("newsletter_subscribers")
-          .update({ is_active: false, unsubscribed_at: new Date().toISOString() })
-          .eq("unsubscribe_token", token);
-        return setStatus(error ? "error" : "unsubscribed");
+        const { data, error } = await supabase.rpc("unsubscribe_newsletter", { _token: token });
+        return setStatus(error || !data ? "error" : "unsubscribed");
       }
       setStatus("error");
     })();

@@ -1,41 +1,30 @@
-# Robots.txt for Scoly
-# https://scoly.ci
-
+# Robots.txt - Scoly (https://scoly.ci)
 User-agent: *
 Allow: /
-
-# Disallow admin and private pages
 Disallow: /admin
 Disallow: /account
+Disallow: /compte
 Disallow: /checkout
+Disallow: /cart
+Disallow: /panier
 Disallow: /vendor
 Disallow: /moderator
 Disallow: /delivery
 Disallow: /author
 Disallow: /team
 Disallow: /bootstrap-admin
-
-# Allow all search engine crawlers
-User-agent: Googlebot
-Allow: /
+Disallow: /auth
+Disallow: /unsubscribe
 
 User-agent: Googlebot-Image
 Allow: /
 
-User-agent: Bingbot
+User-agent: GPTBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: ClaudeBot
 Allow: /
 
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
-User-agent: LinkedInBot
-Allow: /
-
-User-agent: WhatsApp
-Allow: /
-
-# Sitemap location
 Sitemap: https://scoly.ci/sitemap.xml
+Host: https://scoly.ci

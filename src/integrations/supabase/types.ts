@@ -483,6 +483,74 @@ export type Database = {
           },
         ]
       }
+      commercial_availability: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_date: string | null
+          id: string
+          notes: string | null
+          reason: string
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          reason: string
+          start_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          reason?: string
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      commercial_zones: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          user_id: string
+          zone_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          user_id: string
+          zone_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          user_id?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_zones_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commissions: {
         Row: {
           commission_amount: number
@@ -1193,7 +1261,7 @@ export type Database = {
       newsletter_subscribers: {
         Row: {
           confirmation_sent_at: string | null
-          confirmation_token: string
+          confirmation_token_hash: string | null
           confirmed: boolean
           confirmed_at: string | null
           email: string
@@ -1202,12 +1270,12 @@ export type Database = {
           is_active: boolean
           source: string | null
           subscribed_at: string
-          unsubscribe_token: string
+          unsubscribe_token_hash: string | null
           unsubscribed_at: string | null
         }
         Insert: {
           confirmation_sent_at?: string | null
-          confirmation_token?: string
+          confirmation_token_hash?: string | null
           confirmed?: boolean
           confirmed_at?: string | null
           email: string
@@ -1216,12 +1284,12 @@ export type Database = {
           is_active?: boolean
           source?: string | null
           subscribed_at?: string
-          unsubscribe_token?: string
+          unsubscribe_token_hash?: string | null
           unsubscribed_at?: string | null
         }
         Update: {
           confirmation_sent_at?: string | null
-          confirmation_token?: string
+          confirmation_token_hash?: string | null
           confirmed?: boolean
           confirmed_at?: string | null
           email?: string
@@ -1230,7 +1298,7 @@ export type Database = {
           is_active?: boolean
           source?: string | null
           subscribed_at?: string
-          unsubscribe_token?: string
+          unsubscribe_token_hash?: string | null
           unsubscribed_at?: string | null
         }
         Relationships: []
@@ -1313,8 +1381,47 @@ export type Database = {
           },
         ]
       }
+      order_reassignments: {
+        Row: {
+          created_at: string
+          from_user_id: string | null
+          id: string
+          order_id: string
+          reason: string | null
+          reassigned_by: string | null
+          to_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          order_id: string
+          reason?: string | null
+          reassigned_by?: string | null
+          to_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          order_id?: string
+          reason?: string | null
+          reassigned_by?: string | null
+          to_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_reassignments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
+          assigned_at: string | null
           coupon_code: string | null
           created_at: string | null
           customer_confirmed_at: string | null
@@ -1328,13 +1435,16 @@ export type Database = {
           payment_method: string | null
           payment_reference: string | null
           phone: string | null
+          reassignment_count: number
           shipping_address: string | null
           status: Database["public"]["Enums"]["order_status"] | null
           total_amount: number
           updated_at: string | null
           user_id: string | null
+          zone_id: string | null
         }
         Insert: {
+          assigned_at?: string | null
           coupon_code?: string | null
           created_at?: string | null
           customer_confirmed_at?: string | null
@@ -1348,13 +1458,16 @@ export type Database = {
           payment_method?: string | null
           payment_reference?: string | null
           phone?: string | null
+          reassignment_count?: number
           shipping_address?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           total_amount: number
           updated_at?: string | null
           user_id?: string | null
+          zone_id?: string | null
         }
         Update: {
+          assigned_at?: string | null
           coupon_code?: string | null
           created_at?: string | null
           customer_confirmed_at?: string | null
@@ -1368,13 +1481,23 @@ export type Database = {
           payment_method?: string | null
           payment_reference?: string | null
           phone?: string | null
+          reassignment_count?: number
           shipping_address?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           total_amount?: number
           updated_at?: string | null
           user_id?: string | null
+          zone_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -1591,6 +1714,7 @@ export type Database = {
           email: string | null
           first_name: string | null
           id: string
+          is_available: boolean
           last_name: string | null
           phone: string | null
           preferred_language: string | null
@@ -1603,6 +1727,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           id: string
+          is_available?: boolean
           last_name?: string | null
           phone?: string | null
           preferred_language?: string | null
@@ -1615,6 +1740,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           id?: string
+          is_available?: boolean
           last_name?: string | null
           phone?: string | null
           preferred_language?: string | null
@@ -1948,6 +2074,13 @@ export type Database = {
             foreignKeyName: "school_loyalty_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: true
+            referencedRelation: "public_schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_loyalty_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
@@ -2046,6 +2179,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "school_supply_lists_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "public_schools"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "school_supply_lists_school_id_fkey"
             columns: ["school_id"]
@@ -2175,6 +2315,7 @@ export type Database = {
       }
       smart_kits: {
         Row: {
+          category: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
@@ -2184,8 +2325,10 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           name: string
+          options: string | null
           product_id: string | null
           published_at: string | null
+          school_id: string | null
           school_type: string | null
           series: string | null
           status: string
@@ -2193,6 +2336,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -2202,8 +2346,10 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name: string
+          options?: string | null
           product_id?: string | null
           published_at?: string | null
+          school_id?: string | null
           school_type?: string | null
           series?: string | null
           status?: string
@@ -2211,6 +2357,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -2220,8 +2367,10 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           name?: string
+          options?: string | null
           product_id?: string | null
           published_at?: string | null
+          school_id?: string | null
           school_type?: string | null
           series?: string | null
           status?: string
@@ -2243,7 +2392,61 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "smart_kits_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "public_schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_kits_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_kits_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      sms_templates: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_active: boolean
+          key: string
+          label: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key: string
+          label: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key?: string
+          label?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       user_addresses: {
         Row: {
@@ -2441,6 +2644,101 @@ export type Database = {
           },
         ]
       }
+      withdrawal_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          payment_details: Json | null
+          payment_method: string | null
+          processed_at: string | null
+          processed_by: string | null
+          rejection_reason: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: []
+      }
+      zones: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          level: string
+          name: string
+          parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          level: string
+          name: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          level?: string
+          name?: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zones_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       promotions_public: {
@@ -2479,6 +2777,36 @@ export type Database = {
           min_amount?: number | null
           name?: string | null
           start_date?: string | null
+        }
+        Relationships: []
+      }
+      public_schools: {
+        Row: {
+          city: string | null
+          code: string | null
+          id: string | null
+          logo_url: string | null
+          name: string | null
+          region: string | null
+          type: string | null
+        }
+        Insert: {
+          city?: string | null
+          code?: string | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          region?: string | null
+          type?: string | null
+        }
+        Update: {
+          city?: string | null
+          code?: string | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          region?: string | null
+          type?: string | null
         }
         Relationships: []
       }
@@ -2563,7 +2891,7 @@ export type Database = {
         Args: { _subscriber_id: string }
         Returns: {
           confirmation_sent_at: string | null
-          confirmation_token: string
+          confirmation_token_hash: string | null
           confirmed: boolean
           confirmed_at: string | null
           email: string
@@ -2572,7 +2900,7 @@ export type Database = {
           is_active: boolean
           source: string | null
           subscribed_at: string
-          unsubscribe_token: string
+          unsubscribe_token_hash: string | null
           unsubscribed_at: string | null
         }
         SetofOptions: {
@@ -2607,6 +2935,9 @@ export type Database = {
           success: boolean
         }[]
       }
+      confirm_order_receipt: { Args: { _order_id: string }; Returns: boolean }
+      delivery_mark_picked_up: { Args: { _order_id: string }; Returns: boolean }
+      delivery_submit_handoff: { Args: { _order_id: string }; Returns: boolean }
       finalize_campaign_email_log: {
         Args: {
           _attempt_count?: number
@@ -2728,6 +3059,7 @@ export type Database = {
       get_delivery_orders: {
         Args: { _delivery_user_id: string }
         Returns: {
+          assigned_at: string | null
           coupon_code: string | null
           created_at: string | null
           customer_confirmed_at: string | null
@@ -2741,11 +3073,13 @@ export type Database = {
           payment_method: string | null
           payment_reference: string | null
           phone: string | null
+          reassignment_count: number
           shipping_address: string | null
           status: Database["public"]["Enums"]["order_status"] | null
           total_amount: number
           updated_at: string | null
           user_id: string | null
+          zone_id: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -2815,6 +3149,22 @@ export type Database = {
           value: string
         }[]
       }
+      get_referral_balance: {
+        Args: { _user_id: string }
+        Returns: {
+          available: number
+          total_earned: number
+          total_withdrawn: number
+        }[]
+      }
+      get_school_contact: {
+        Args: { _school_id: string }
+        Returns: {
+          address: string
+          email: string
+          phone: string
+        }[]
+      }
       get_share_stats: {
         Args: { _end_date?: string; _start_date?: string }
         Returns: {
@@ -2874,6 +3224,7 @@ export type Database = {
         Args: { _product_id: string }
         Returns: undefined
       }
+      pick_available_commercial: { Args: { _zone_id: string }; Returns: string }
       redeem_loyalty_points: {
         Args: { _points_required: number; _reward_type: string }
         Returns: {
@@ -2934,6 +3285,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      unsubscribe_newsletter: { Args: { _token: string }; Returns: boolean }
       update_campaign_event_counts: {
         Args: { _event: string; _provider_message_id: string }
         Returns: undefined

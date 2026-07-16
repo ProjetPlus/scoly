@@ -207,12 +207,41 @@ serve(async (req) => {
 </body>
 </html>`;
 
+    // Génération PDF (uniquement pour confirmation)
+    const attachments: Array<{ name: string; content: string; type?: string }> = [];
+    if (emailType === "confirmation") {
+      try {
+        const pdfResp = await fetch(`${supabaseUrl}/functions/v1/generate-receipt-pdf`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ order_id: orderId }),
+        });
+        if (pdfResp.ok) {
+          const pdfJson = await pdfResp.json();
+          if (pdfJson?.pdf_base64) {
+            attachments.push({
+              name: `scoly-recu-${orderNumber}.pdf`,
+              content: pdfJson.pdf_base64,
+              type: "application/pdf",
+            });
+          }
+        }
+      } catch (e) {
+        console.error("[send-order-email] PDF generation failed:", e);
+      }
+    }
+
     const result = await sendBrevoEmail({
       from: { name: "Scoly", email: "noreply@scoly.ci" },
       to: recipientEmail,
       subject,
       html,
+      attachments: attachments.length ? attachments : undefined,
     });
+
 
     console.log("Email sent:", result);
 

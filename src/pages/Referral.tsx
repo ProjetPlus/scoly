@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import WithdrawalRequest from "@/components/referral/WithdrawalRequest";
 
 const Referral = () => {
   const { user } = useAuth();
@@ -252,8 +253,15 @@ const Referral = () => {
               </Link>
             </div>
           )}
+
+          {user && (
+            <div className="mt-10">
+              <WithdrawalRequest />
+            </div>
+          )}
         </div>
       </section>
+
 
       <Footer />
     </main>

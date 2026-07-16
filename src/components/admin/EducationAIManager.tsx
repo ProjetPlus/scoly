@@ -149,21 +149,21 @@ const EducationAIManager = () => {
           <Brain className="text-primary" /> Gestion IA — Éducation
         </h2>
         <p className="text-muted-foreground text-sm">
-          Générez des kits scolaires, ressources éducatives et descriptions d'écoles avec l'IA
+          Préparez des suggestions de kits école par niveau à partir du catalogue Scoly.
         </p>
       </div>
 
       <Tabs defaultValue="kits" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="kits" className="gap-1"><Package size={14} /> Kits IA</TabsTrigger>
+          <TabsTrigger value="kits" className="gap-1"><Package size={14} /> Kits École</TabsTrigger>
         </TabsList>
 
-        {/* ─── Kit Generation ─── */}
+        {/* ─── Kits École ─── */}
         <TabsContent value="kits">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><Package className="text-primary" /> Générer un Kit Scolaire</CardTitle>
-              <CardDescription>L'IA compose un kit complet adapté au niveau scolaire et à la série</CardDescription>
+              <CardDescription>Composez un kit complet adapté au niveau scolaire et à la série</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

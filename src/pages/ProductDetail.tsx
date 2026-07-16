@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Star, ShoppingCart, Heart, Minus, Plus, Share2, Truck, Shield, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductImageGallery from "@/components/ProductImageGallery";
 import RecentlyViewed, { addToRecentlyViewed } from "@/components/RecentlyViewed";
+
 
 interface Product {
   id: string;
@@ -232,9 +234,85 @@ const ProductDetail = () => {
     );
   }
 
+  const canonicalUrl = `https://scoly.ci/shop/product/${product.id}`;
+  const productName = getLocalizedName(product);
+  const productDescription =
+    getLocalizedDescription(product) ||
+    `Achetez ${productName} sur Scoly — Livraison gratuite en Côte d'Ivoire.`;
+  const toAbsoluteUrl = (value?: string | null) => {
+    if (!value) return "https://scoly.ci/og-image.png";
+    if (value.startsWith("http://") || value.startsWith("https://")) return value;
+    return `https://scoly.ci${value.startsWith("/") ? value : `/${value}`}`;
+  };
+  const productImage = toAbsoluteUrl((product.images && product.images[0]) || product.image_url);
+
+  const productJsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    name: productName,
+    description: productDescription,
+    image: [productImage],
+    sku: product.id,
+    brand: { "@type": "Brand", name: "Scoly" },
+    offers: {
+      "@type": "Offer",
+      url: canonicalUrl,
+      priceCurrency: "XOF",
+      price: product.price,
+      availability:
+        product.stock && product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      seller: { "@type": "Organization", name: "Scoly" },
+    },
+    ...(reviews.length > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: averageRating.toFixed(1),
+            reviewCount: reviews.length,
+          },
+        }
+      : {}),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: "https://scoly.ci/" },
+      { "@type": "ListItem", position: 2, name: "Boutique", item: "https://scoly.ci/shop" },
+      { "@type": "ListItem", position: 3, name: productName, item: canonicalUrl },
+    ],
+  };
+
   return (
     <main className="min-h-screen bg-background">
+      <Helmet>
+        <title>{`${productName} — Scoly`}</title>
+        <meta name="description" content={productDescription.slice(0, 158)} />
+        <link rel="canonical" href={canonicalUrl} />
+        <link rel="alternate" hrefLang="fr-CI" href={canonicalUrl} />
+        <link rel="alternate" hrefLang="fr" href={canonicalUrl} />
+        <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={`${productName} — Scoly`} />
+        <meta property="og:description" content={productDescription.slice(0, 200)} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={productImage} />
+        <meta property="product:price:amount" content={String(product.price)} />
+        <meta property="product:price:currency" content="XOF" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${productName} — Scoly`} />
+        <meta name="twitter:description" content={productDescription.slice(0, 200)} />
+        <meta name="twitter:image" content={productImage} />
+        <script type="application/ld+json">{JSON.stringify(productJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
+      </Helmet>
+
       <Navbar />
+
+
       
       <div className="pt-24 pb-16">
         <div className="container mx-auto px-4">

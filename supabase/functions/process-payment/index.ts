@@ -76,7 +76,8 @@ serve(async (req) => {
       .insert({
         order_id: orderId,
         user_id: user.id, // Use authenticated user ID, not client-supplied
-        amount,
+        // SECURITY: always use the server-side order total — never the client-supplied amount
+        amount: order.total_amount,
         payment_method: paymentMethod || 'kkiapay',
         phone_number: phoneNumber,
         status: 'pending',

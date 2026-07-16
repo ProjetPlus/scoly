@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import SmartImage from "@/components/SmartImage";
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -41,11 +42,16 @@ const ProductImageGallery = ({ images, productName }: ProductImageGalleryProps) 
     <div className="space-y-4">
       {/* Main Image */}
       <div className="relative aspect-square bg-muted rounded-2xl overflow-hidden group">
-        <img
+        <SmartImage
           src={allImages[selectedIndex]}
           alt={`${productName} - Image ${selectedIndex + 1}`}
           className="w-full h-full object-contain cursor-zoom-in"
           onClick={handleImageClick}
+          fallbackSrc="/placeholder.svg"
+          priority
+          width={900}
+          height={900}
+          sizes="(max-width: 1024px) 100vw, 50vw"
         />
 
         {/* Navigation Arrows - Always visible on mobile, hover on desktop */}
@@ -105,10 +111,14 @@ const ProductImageGallery = ({ images, productName }: ProductImageGalleryProps) 
                   : "border-transparent hover:border-border"
               }`}
             >
-              <img
+              <SmartImage
                 src={image}
                 alt={`Miniature ${index + 1}`}
                 className="w-full h-full object-cover"
+                fallbackSrc="/placeholder.svg"
+                width={80}
+                height={80}
+                sizes="80px"
               />
             </button>
           ))}
@@ -119,10 +129,14 @@ const ProductImageGallery = ({ images, productName }: ProductImageGalleryProps) 
       <Dialog open={isZoomOpen} onOpenChange={setIsZoomOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden bg-black">
           <div className="relative w-full h-full flex items-center justify-center">
-            <img
+            <SmartImage
               src={allImages[selectedIndex]}
               alt={productName}
               className="max-w-full max-h-[85vh] object-contain"
+              fallbackSrc="/placeholder.svg"
+              width={1200}
+              height={1200}
+              sizes="100vw"
             />
 
             {allImages.length > 1 && (
@@ -162,10 +176,14 @@ const ProductImageGallery = ({ images, productName }: ProductImageGalleryProps) 
                         : "border-transparent opacity-60 hover:opacity-100"
                     }`}
                   >
-                    <img
+                    <SmartImage
                       src={image}
                       alt={`Miniature ${index + 1}`}
                       className="w-full h-full object-cover"
+                      fallbackSrc="/placeholder.svg"
+                      width={48}
+                      height={48}
+                      sizes="48px"
                     />
                   </button>
                 ))}

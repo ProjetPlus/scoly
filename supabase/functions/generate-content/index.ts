@@ -43,6 +43,12 @@ serve(async (req) => {
     }
 
     const { type, input } = await req.json();
+    // Cap input size to prevent runaway AI cost
+    if (typeof input !== 'string' || input.length === 0 || input.length > 2000) {
+      return new Response(JSON.stringify({ error: 'Invalid input (max 2000 chars)' }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -98,7 +104,7 @@ CONTEXTE CRÉATIF :
 - Plateforme : Site web e-commerce éducatif
 - Audience : Parents, enseignants, directeurs d'école, étudiants en CI
 - Ton : Professionnel, chaleureux, engageant, africain
-- Pages cibles : /shop, /kits, /ecoles, /actualites, /ressources, /parrainage
+- Pages cibles : /shop, /kits-ecole, /actualites, /parrainage, /livraison-retours
 
 RÈGLES DE COPYWRITING :
 - Titre : Court, impactant, avec verbe d'action (max 60 chars)
@@ -119,7 +125,7 @@ RÈGLES DE COPYWRITING :
             properties: {
               title: { type: "string", description: "Titre impactant (max 60 chars)" },
               description: { type: "string", description: "Description engageante avec bénéfice (max 160 chars)" },
-              link_url: { type: "string", description: "URL relative du site (/shop, /kits, /ecoles, etc.)" },
+              link_url: { type: "string", description: "URL relative du site (/shop, /kits-ecole, /actualites, etc.)" },
               link_text: { type: "string", description: "Texte du bouton CTA (verbe + bénéfice)" },
               priority: { type: "number", description: "Priorité d'affichage (0-10)" },
               image_prompt: { type: "string", description: "Prompt détaillé pour image. Contexte africain/ivoirien, personnes noires, pas de watermark." },

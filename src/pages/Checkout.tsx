@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useKkiaPay } from "@/hooks/useKkiaPay";
 import { usePaymentTracking } from "@/hooks/usePaymentTracking";
+import { MIN_ORDER_AMOUNT, isOrderAmountValid, formatMinOrderMessage } from "@/lib/orderRules";
 
 // Regions of Côte d'Ivoire
 const regions = [
@@ -328,6 +329,10 @@ const Checkout = () => {
     e.preventDefault();
     
     if (!user || items.length === 0) return;
+    if (!isOrderAmountValid(finalTotal)) {
+      toast({ title: "Montant trop bas", description: formatMinOrderMessage(), variant: "destructive" });
+      return;
+    }
     if (!validateForm()) return;
 
     setLoading(true);

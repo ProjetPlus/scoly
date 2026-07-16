@@ -22,12 +22,9 @@ import {
   Truck,
   Gift,
   BarChart3,
-  Database,
   HelpCircle,
   FileText,
   Menu,
-  GraduationCap,
-  BookOpen,
   UserPlus,
   Zap
 } from "lucide-react";
@@ -39,21 +36,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import UserManagement from "@/components/admin/UserManagement";
 import ProductForm from "@/components/admin/ProductForm";
 import BulkProductImport from "@/components/admin/BulkProductImport";
-import KitComposer from "@/components/KitComposer";
-import AuthorsManagement from "@/components/admin/AuthorsManagement";
+// KitComposer removed — replaced by Kits École module
+// AuthorsManagement removed
 import PublicationsReview from "@/components/admin/PublicationsReview";
 import CouponManagement from "@/components/admin/CouponManagement";
 import AdvertisementsManagement from "@/components/admin/AdvertisementsManagement";
-import DatabaseManagement from "@/components/admin/DatabaseManagement";
 import FAQManagement from "@/components/admin/FAQManagement";
 import PlatformSettings from "@/components/admin/PlatformSettings";
 import AdvancedStats from "@/components/admin/AdvancedStats";
@@ -67,6 +62,10 @@ import EmailMarketing from "@/components/admin/EmailMarketing";
 import EmailLogsDashboard from "@/components/admin/EmailLogsDashboard";
 import CampaignAnalyticsDashboard from "@/components/admin/CampaignAnalyticsDashboard";
 import ProviderMonitoring from "@/components/admin/ProviderMonitoring";
+import ZonesManagement from "@/components/admin/ZonesManagement";
+import SchoolKitsManagement from "@/components/admin/SchoolKitsManagement";
+import SmartImage from "@/components/SmartImage";
+import { getCategoryImageUrl, sortCategories } from "@/lib/categoryAssets";
 
 import { Share2 } from "lucide-react";
 
@@ -95,56 +94,20 @@ type TabType =
   | "payments"
   | "social_media"
   | "documentation"
-  | "schools"
-  | "resources"
   | "referrals"
   | "flash_deals"
-  | "kit_composer"
   | "email_marketing"
   | "email_logs"
   | "email_analytics"
-  | "email_monitoring";
+  | "email_monitoring"
+  | "zones"
+  | "school_kits";
 
 const Admin = () => {
-  const { t, language } = useLanguage();
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
+  useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [openMenuGroups, setOpenMenuGroups] = useState<string[]>(["Vue d'ensemble", "Catalogue & Ventes", "Contenu & Kits"]);
-
-  useEffect(() => {
-    if (authLoading) return;
-    checkAdminRole();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user]);
-
-  const checkAdminRole = async () => {
-    if (!user) {
-      setLoading(false);
-      navigate("/auth");
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (error || !data) {
-      toast.error("Accès refusé. Vous n'êtes pas administrateur.");
-      setLoading(false);
-      navigate("/");
-      return;
-    }
-
-    setIsAdmin(true);
-    setLoading(false);
-  };
+  const [openMenuGroups, setOpenMenuGroups] = useState<string[]>(["Vue d'ensemble", "Catalogue & Ventes", "Contenu"]);
 
   const menuGroups: Array<{ label: string; items: Array<{ id: string; label: string; icon: any }> }> = [
     {
@@ -166,6 +129,7 @@ const Admin = () => {
         { id: "promotions_mgmt", label: "Promotions", icon: Tag },
         { id: "flash_deals", label: "Ventes Flash", icon: Zap },
         { id: "promotions", label: "Coupons", icon: Tag },
+        { id: "school_kits", label: "Kits École", icon: Package },
       ],
     },
     {
@@ -176,15 +140,14 @@ const Admin = () => {
         { id: "commissions", label: "Commissions", icon: DollarSign },
         { id: "loyalty", label: "Fidélité", icon: Gift },
         { id: "referrals", label: "Parrainages", icon: UserPlus },
-        { id: "authors", label: "Auteurs", icon: Users },
+        { id: "zones", label: "Zones & Commerciaux", icon: Truck },
       ],
     },
     {
-      label: "Contenu & Kits",
+      label: "Contenu",
       items: [
         { id: "articles", label: "Actualités", icon: FileText },
         { id: "review", label: "Validation", icon: Eye },
-        { id: "kit_composer", label: "Compositeur de kit", icon: GraduationCap },
         { id: "advertisements", label: "Publicités", icon: Bell },
         { id: "social_media", label: "Réseaux Sociaux", icon: Share2 },
       ],
@@ -226,96 +189,41 @@ const Admin = () => {
     setMobileMenuOpen(false);
   };
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-background">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </main>
-    );
-  }
-
-  if (!isAdmin) {
-    return null;
-  }
-
   return (
-    <main className="min-h-screen bg-background">
-      <div className="min-h-screen flex">
+    <main className="min-h-screen bg-background overflow-x-hidden">
+      <div className="min-h-screen flex w-full min-w-0 overflow-x-hidden">
 
 
         {/* Sidebar - Desktop */}
-        <aside className="w-64 bg-card border-r border-border hidden lg:block sticky top-0 h-screen overflow-y-auto">
+        <aside className="w-64 shrink-0 bg-card border-r border-border hidden lg:block sticky top-0 h-screen overflow-y-auto overscroll-contain">
           <div className="p-4 border-b border-border">
             <h2 className="text-lg font-display font-bold text-foreground">Administration</h2>
             <p className="text-xs text-muted-foreground">Menu interne</p>
           </div>
           <nav className="px-3 py-4 space-y-2">
-            {menuGroups.map((group) => {
-              const isGroupActive = group.items.some((i) => i.id === activeTab);
+            {menuGroups.map((group, groupIndex) => {
+              const isGroupOpen = openMenuGroups.includes(group.label);
+              const panelId = `admin-menu-desktop-${groupIndex}`;
               return (
-                <details
+                <div
                   key={group.label}
-                  open={openMenuGroups.includes(group.label)}
-                  onToggle={(event) => {
-                    event.preventDefault();
-                    toggleMenuGroup(group.label);
-                  }}
-                  className="group/details rounded-lg border border-border/60 bg-background/40"
+                  className="rounded-lg border border-border/60 bg-background/40"
                 >
-                  <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground">
-                    {group.label}
-                    <ChevronRight size={13} className="transition-transform group-open/details:rotate-90" />
-                  </summary>
-                  <div className="space-y-1 px-2 pb-2 pt-1">
-                    {group.items.map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => handleTabChange(item.id as TabType)}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
-                          activeTab === item.id
-                            ? "bg-primary text-primary-foreground"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        }`}
-                      >
-                        <item.icon size={16} />
-                        <span className="truncate">{item.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </details>
-              );
-            })}
-          </nav>
-        </aside>
-
-        {/* Mobile Menu Sheet */}
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-72 p-0 z-[60]">
-            <SheetHeader className="p-6 border-b border-border">
-              <SheetTitle>Administration</SheetTitle>
-            </SheetHeader>
-            <nav className="p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-100px)]">
-              {menuGroups.map((group) => {
-                const isGroupActive = group.items.some((i) => i.id === activeTab);
-                return (
-                  <details
-                    key={group.label}
-                    open={openMenuGroups.includes(group.label)}
-                    onToggle={(event) => {
-                      event.preventDefault();
-                      toggleMenuGroup(group.label);
-                    }}
-                    className="group/details rounded-lg border border-border/70"
+                  <button
+                    type="button"
+                    aria-expanded={isGroupOpen}
+                    aria-controls={panelId}
+                    onClick={() => toggleMenuGroup(group.label)}
+                    className="w-full px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground"
                   >
-                    <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground">
-                      {group.label}
-                      <ChevronRight size={13} className="transition-transform group-open/details:rotate-90" />
-                    </summary>
-                    <div className="space-y-1 px-2 pb-2 pt-1">
+                    {group.label}
+                    <ChevronRight size={13} className={`transition-transform ${isGroupOpen ? "rotate-90" : ""}`} />
+                  </button>
+                  {isGroupOpen && (
+                    <div id={panelId} className="space-y-1 px-2 pb-2 pt-1">
                       {group.items.map((item) => (
                         <button
+                          type="button"
                           key={item.id}
                           onClick={() => handleTabChange(item.id as TabType)}
                           className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
@@ -329,26 +237,90 @@ const Admin = () => {
                         </button>
                       ))}
                     </div>
-                  </details>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* Mobile Menu Sheet */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetContent side="left" className="w-[min(20rem,92vw)] max-w-[92vw] p-0 z-[60] overflow-hidden">
+            <SheetHeader className="p-6 border-b border-border">
+              <SheetTitle>Administration</SheetTitle>
+            </SheetHeader>
+            <nav className="p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-100px)]">
+              {menuGroups.map((group, groupIndex) => {
+                const isGroupOpen = openMenuGroups.includes(group.label);
+                const panelId = `admin-menu-mobile-${groupIndex}`;
+                return (
+                  <div
+                    key={group.label}
+                    className="group/details rounded-lg border border-border/70"
+                  >
+                    <button
+                      type="button"
+                      aria-expanded={isGroupOpen}
+                      aria-controls={panelId}
+                      onClick={() => toggleMenuGroup(group.label)}
+                      className="w-full px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground"
+                    >
+                      {group.label}
+                      <ChevronRight size={13} className={`transition-transform ${isGroupOpen ? "rotate-90" : ""}`} />
+                    </button>
+                    {isGroupOpen && (
+                      <div id={panelId} className="space-y-1 px-2 pb-2 pt-1">
+                        {group.items.map((item) => (
+                          <button
+                            type="button"
+                            key={item.id}
+                            onClick={() => handleTabChange(item.id as TabType)}
+                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
+                              activeTab === item.id
+                                ? "bg-primary text-primary-foreground"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            }`}
+                          >
+                            <item.icon size={16} />
+                            <span className="truncate">{item.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </nav>
           </SheetContent>
         </Sheet>
 
-        {/* Floating Menu Button (bottom right) - Mobile fallback */}
-        <div className="lg:hidden fixed bottom-4 right-4 z-50">
-          <Button
-            size="icon"
-            className="h-14 w-14 rounded-full shadow-lg"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <Menu size={24} />
-          </Button>
-        </div>
-
         {/* Main Content */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 pt-4">
+        <div className="flex-1 min-w-0 w-full max-w-full overflow-x-hidden flex flex-col">
+          {/* Mobile Header */}
+          <header className="lg:hidden sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85 px-3 py-2">
+            <div className="flex items-center gap-2 min-w-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setMobileMenuOpen(true)}
+              className="shrink-0 gap-2 border-primary text-primary"
+              aria-label="Ouvrir le menu admin"
+            >
+              <Menu size={16} />
+              Menu admin
+            </Button>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Section active</p>
+              <h1 className="truncate text-sm font-semibold text-foreground">
+                {menuItems.find((item) => item.id === activeTab)?.label ?? "Tableau de bord"}
+              </h1>
+            </div>
+            </div>
+          </header>
+          
+          <div className="min-w-0 max-w-full overflow-x-hidden p-3 sm:p-6 lg:p-8 pb-20 lg:pb-8 pt-4">
 
           {activeTab === "dashboard" && <AdminDashboard />}
           {activeTab === "email_marketing" && <EmailMarketing />}
@@ -369,18 +341,19 @@ const Admin = () => {
           {activeTab === "promotions_mgmt" && <PromotionsManagement />}
           {activeTab === "flash_deals" && <FlashDealsManagement />}
           {activeTab === "social_media" && <SocialMediaManager />}
-          {activeTab === "authors" && <AuthorsManagement />}
+          {/* authors tab removed */}
           {activeTab === "review" && <PublicationsReview />}
           {activeTab === "articles" && <ArticlesTab />}
           {activeTab === "promotions" && <CouponManagement />}
           {activeTab === "advertisements" && <AdvertisementsManagement />}
           {activeTab === "faq" && <FAQManagement />}
           {activeTab === "documentation" && <DocumentationManager />}
-          {activeTab === "schools" && <SchoolsAdminTab />}
-          {activeTab === "resources" && <ResourcesAdminTab />}
-          {activeTab === "kit_composer" && <KitComposer />}
+          {/* schools tab removed */}
           {activeTab === "referrals" && <ReferralsAdminTab />}
           {activeTab === "settings" && <PlatformSettings />}
+          {activeTab === "zones" && <ZonesManagement />}
+          {activeTab === "school_kits" && <SchoolKitsManagement />}
+          </div>
         </div>
       </div>
     </main>
@@ -503,12 +476,14 @@ const ProductsTab = () => {
                 <tr key={product.id} className="border-t border-border">
                   <td className="py-3 px-4">
                     <div className="w-12 h-12 bg-muted rounded-lg overflow-hidden">
-                      <img 
+                      <SmartImage 
                         src={product.image_url || "/placeholder.svg"} 
                         alt="" 
                         className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
+                        fallbackSrc="/placeholder.svg"
+                        width={48}
+                        height={48}
+                        sizes="48px"
                       />
                     </div>
                   </td>
@@ -566,13 +541,14 @@ const CategoriesTab = () => {
   };
 
   const handleSubmit = async () => {
+    const slug = formData.slug || formData.name_fr.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     const categoryData = {
       name_fr: formData.name_fr,
       name_en: formData.name_en || formData.name_fr,
       name_de: formData.name_de || formData.name_fr,
       name_es: formData.name_es || formData.name_fr,
-      slug: formData.slug || formData.name_fr.toLowerCase().replace(/\s+/g, "-"),
-      image_url: formData.image_url || null,
+      slug,
+      image_url: formData.image_url || getCategoryImageUrl({ slug, name_fr: formData.name_fr, image_url: null }),
       parent_id: formData.parent_id || null,
     };
 
@@ -625,14 +601,20 @@ const CategoriesTab = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categories.map((cat) => (
+        {sortCategories(categories).map((cat) => (
           <div key={cat.id} className="bg-card rounded-xl border border-border p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {cat.image_url && (
-                <div className="w-12 h-12 bg-muted rounded-lg overflow-hidden">
-                  <img src={cat.image_url} alt="" className="w-full h-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }} />
-                </div>
-              )}
+              <div className="w-12 h-12 bg-muted rounded-lg overflow-hidden">
+                <SmartImage
+                  src={getCategoryImageUrl(cat)}
+                  alt={cat.name_fr}
+                  className="w-full h-full object-cover"
+                  fallbackSrc="/placeholder.svg"
+                  width={48}
+                  height={48}
+                  sizes="48px"
+                />
+              </div>
               <div>
                 <p className="font-medium">{cat.name_fr}</p>
                 <p className="text-xs text-muted-foreground">{cat.slug}</p>
@@ -1387,118 +1369,6 @@ const ArticlesTab = () => {
   );
 };
 
-// Schools Admin Tab
-const SchoolsAdminTab = () => {
-  const [schools, setSchools] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-
-  useEffect(() => { fetchSchools(); }, []);
-
-  const fetchSchools = async () => {
-    setLoading(true);
-    const { data } = await supabase.from("schools").select("*").order("created_at", { ascending: false });
-    setSchools(data || []);
-    setLoading(false);
-  };
-
-  const toggleVerify = async (id: string, current: boolean) => {
-    const { error } = await supabase.from("schools").update({ is_verified: !current }).eq("id", id);
-    if (error) toast.error("Erreur"); else { toast.success(current ? "Vérification retirée" : "École vérifiée ✅"); fetchSchools(); }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer cet établissement ?")) return;
-    const { error } = await supabase.from("schools").delete().eq("id", id);
-    if (error) toast.error("Erreur"); else { toast.success("Supprimé"); fetchSchools(); }
-  };
-
-  const filtered = schools.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.city?.toLowerCase().includes(search.toLowerCase()));
-  const pendingCount = schools.filter(s => !s.is_verified).length;
-
-  return (
-    <div>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Gestion des Écoles</h1>
-          <p className="text-sm text-muted-foreground mt-1">{pendingCount > 0 && <span className="text-destructive font-medium">{pendingCount} en attente de vérification</span>}</p>
-        </div>
-        <div className="flex gap-2">
-          <Badge variant="outline">{schools.length} écoles</Badge>
-          <Badge variant="default">{schools.filter(s => s.is_verified).length} vérifiées</Badge>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Rechercher une école..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="text-center py-12 text-muted-foreground">Chargement...</div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-12 bg-card border border-border rounded-xl">
-          <GraduationCap size={48} className="mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Aucune école trouvée.</p>
-        </div>
-      ) : (
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="text-left p-3">Nom</th>
-                  <th className="text-left p-3 hidden sm:table-cell">Ville</th>
-                  <th className="text-left p-3 hidden md:table-cell">Type</th>
-                  <th className="text-left p-3 hidden md:table-cell">Contact</th>
-                  <th className="text-left p-3">Statut</th>
-                  <th className="text-right p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((school) => (
-                  <tr key={school.id} className="border-t border-border">
-                    <td className="p-3 font-medium">{school.name}</td>
-                    <td className="p-3 hidden sm:table-cell text-muted-foreground">{school.city}</td>
-                    <td className="p-3 hidden md:table-cell text-muted-foreground">
-                      {school.type === "primary" ? "Primaire" : school.type === "secondary" ? "Secondaire" : "Prim. & Sec."}
-                    </td>
-                    <td className="p-3 hidden md:table-cell text-muted-foreground text-xs">
-                      {school.phone && <div>{school.phone}</div>}
-                      {school.email && <div>{school.email}</div>}
-                    </td>
-                    <td className="p-3">
-                      <Badge 
-                        variant={school.is_verified ? "default" : "secondary"} 
-                        className="cursor-pointer"
-                        onClick={() => toggleVerify(school.id, school.is_verified)}
-                      >
-                        {school.is_verified ? "✅ Vérifiée" : "⏳ En attente"}
-                      </Badge>
-                    </td>
-                    <td className="p-3 text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="outline" size="sm" onClick={() => toggleVerify(school.id, school.is_verified)}>
-                          {school.is_verified ? "Retirer" : "Valider"}
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(school.id)}>
-                          <Trash2 size={14} className="text-destructive" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
 // Resources Admin Tab
 const ResourcesAdminTab = () => {
   const [resources, setResources] = useState<any[]>([]);
@@ -1530,7 +1400,7 @@ const ResourcesAdminTab = () => {
         <div className="text-center py-12 text-muted-foreground">Chargement...</div>
       ) : resources.length === 0 ? (
         <div className="text-center py-12 bg-card border border-border rounded-xl">
-          <BookOpen size={48} className="mx-auto text-muted-foreground mb-4" />
+          <FileText size={48} className="mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">Aucune ressource éducative.</p>
         </div>
       ) : (

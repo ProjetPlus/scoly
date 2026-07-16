@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
 
     // Match items against existing products by name similarity
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const { data: products } = await supabase.from("products").select("id, name_fr, price").eq("is_active", true).limit(2000);
+    const { data: products } = await supabase.from("products").select("id, name_fr, price, image_url, stock").eq("is_active", true).limit(2000);
     const norm = (s: string) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]/g, "").trim();
     const items = (args.items || []).map((it: any) => {
       const target = norm(it.item_name);
@@ -125,6 +125,7 @@ Deno.serve(async (req) => {
         is_required: it.is_required ?? true,
         estimated_price: it.estimated_price_fcfa || match?.price || 0,
         product_id: match?.id || null,
+        product_image_url: match?.image_url || null,
         category_hint: it.category_hint || null,
       };
     });

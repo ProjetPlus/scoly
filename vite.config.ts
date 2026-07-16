@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg", "favicon.ico", "logo-scoly.png"],
+      includeAssets: ["favicon.png", "logo-scoly.png", "og-image.png"],
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp,woff2}"],
         runtimeCaching: [
@@ -48,8 +48,7 @@ export default defineConfig(({ mode }) => ({
         scope: "/",
         start_url: "/",
         icons: [
-          { src: "/favicon.svg", sizes: "any", type: "image/svg+xml" },
-          { src: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+          { src: "/favicon.png", sizes: "192x192", type: "image/png" },
           { src: "/logo-scoly.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
         ],
       },

@@ -99,22 +99,26 @@ const FlashDeals = () => {
             </div>
           </div>
 
-          {/* Countdown */}
+          {/* Countdown — Jumia style flip cards */}
           <div className="flex items-center gap-2">
-            <Clock size={18} className="text-destructive" />
-            <span className="text-sm text-muted-foreground">Se termine dans</span>
-            <div className="flex gap-1">
+            <Clock size={18} className="text-destructive animate-pulse" />
+            <span className="text-xs sm:text-sm text-muted-foreground font-medium">Se termine dans</span>
+            <div className="flex gap-1.5">
               {[
-                { value: timeLeft.hours, label: 'h' },
-                { value: timeLeft.minutes, label: 'm' },
-                { value: timeLeft.seconds, label: 's' },
+                { value: timeLeft.hours, label: 'H' },
+                { value: timeLeft.minutes, label: 'M' },
+                { value: timeLeft.seconds, label: 'S' },
               ].map((unit, i) => (
-                <div key={i} className="bg-foreground text-background rounded-md px-2 py-1 text-sm font-mono font-bold min-w-[36px] text-center">
-                  {String(unit.value).padStart(2, '0')}{unit.label}
+                <div key={i} className="relative">
+                  <div className="bg-gradient-to-br from-foreground to-foreground/90 text-background rounded-md px-2 py-1 text-sm sm:text-base font-mono font-bold min-w-[34px] sm:min-w-[40px] text-center shadow-md tabular-nums">
+                    {String(unit.value).padStart(2, '0')}
+                  </div>
+                  <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[8px] font-semibold text-muted-foreground">{unit.label}</span>
                 </div>
               ))}
             </div>
           </div>
+
         </div>
 
         {/* Deals Grid */}

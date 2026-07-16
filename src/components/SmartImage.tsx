@@ -46,8 +46,9 @@ const SmartImage = forwardRef<HTMLImageElement, SmartImageProps>(function SmartI
 
   // priority images load eagerly for best LCP
   const resolvedLoading = loading ?? (priority ? "eager" : "lazy");
+  const optimizedSources = getOptimizedSources(currentSrc);
 
-  return (
+  const image = (
     <img
       {...props}
       ref={ref}
@@ -59,7 +60,26 @@ const SmartImage = forwardRef<HTMLImageElement, SmartImageProps>(function SmartI
       onError={handleError}
     />
   );
+
+  if (!optimizedSources) return image;
+
+  return (
+    <picture>
+      <source srcSet={optimizedSources.avif} type="image/avif" />
+      <source srcSet={optimizedSources.webp} type="image/webp" />
+      {image}
+    </picture>
+  );
 });
+
+function getOptimizedSources(src: string) {
+  if (!src.startsWith("/") || src.startsWith("//") || src.startsWith("/__l5e/")) return null;
+  if (src === "/placeholder.svg") return null;
+  const match = src.match(/\.(jpe?g|png)$/i);
+  if (!match) return null;
+  const base = src.slice(0, -match[0].length);
+  return { avif: `${base}.avif`, webp: `${base}.webp` };
+}
 
 SmartImage.displayName = "SmartImage";
 

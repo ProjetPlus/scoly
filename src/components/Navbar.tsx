@@ -30,14 +30,15 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const { t } = useLanguage();
-  const { user, signOut, isAdmin, roles } = useAuth();
+  const { user, signOut, isAdmin, roles, loading, rolesLoading } = useAuth();
   const { itemCount: cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const isDashboard = /^\/(admin|vendor|delivery|moderator|team|author|account|compte|wishlist)(\/|$)/.test(pathname);
+  const isDashboard = /^\/(admin|vendor|delivery|moderator|team|account|compte|wishlist)(\/|$)/.test(pathname);
 
   const categories = [
+    { label: "Maternelle", href: "/shop?category=scoly-maternelle" },
     { label: "Primaire", href: "/shop?category=scoly-primaire" },
     { label: "Secondaire", href: "/shop?category=scoly-secondaire" },
     { label: "Universitaire", href: "/shop?category=scoly-universite" },
@@ -47,16 +48,19 @@ const Navbar = () => {
 
   const navItems = [
     { label: "Boutique", href: "/shop" },
-    { label: "Écoles", href: "/ecoles" },
-    { label: "Kits", href: "/kits" },
+    { label: "Kits École", href: "/kits-ecole" },
     { label: "Actualités", href: "/actualites" },
     { label: t.nav.about, href: "/about" },
     { label: t.nav.contact, href: "/contact" },
   ];
 
-  const isVendor = roles.includes("vendor");
-  const isModerator = roles.includes("moderator");
-  const isDelivery = roles.includes("delivery");
+  // Gating basé uniquement sur le tableau des rôles :
+  // dès que les rôles arrivent ils s'affichent, et ils ne disparaissent plus
+  // pendant un refresh de token (fini le clignotement du menu admin).
+  const isVendor = !!user && roles.includes("vendor");
+  const isModerator = !!user && roles.includes("moderator");
+  const isDelivery = !!user && roles.includes("delivery");
+  const showAdmin = !!user && isAdmin;
 
   const handleLogout = async () => {
     await signOut();
@@ -146,6 +150,19 @@ const Navbar = () => {
 
               {user && <NotificationBell />}
 
+              {/* Raccourci Admin toujours visible pour les administrateurs */}
+              {showAdmin && (
+                <Link
+                  to="/admin"
+                  aria-label="Administration"
+                  title="Administration"
+                  className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-xs sm:text-sm font-semibold"
+                >
+                  <Shield size={16} />
+                  <span className="hidden sm:inline">Admin</span>
+                </Link>
+              )}
+
               {/* Account dropdown trigger */}
               {user ? (
                 <div className="hidden sm:block group relative">
@@ -159,7 +176,7 @@ const Navbar = () => {
                       <Link to="/account" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted">
                         <User size={16} /> Mon compte
                       </Link>
-                      {isAdmin && (
+                      {showAdmin && (
                         <Link to="/admin" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted">
                           <Shield size={16} /> Administration
                         </Link>
@@ -321,7 +338,7 @@ const Navbar = () => {
                   <Link to="/wishlist" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-muted">
                     <Heart size={16} /> Favoris {wishlistCount > 0 && <span className="ml-auto text-xs bg-secondary text-secondary-foreground px-1.5 rounded-full">{wishlistCount}</span>}
                   </Link>
-                  {isAdmin && (
+                  {showAdmin && (
                     <Link to="/admin" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-muted">
                       <Shield size={16} /> Administration
                     </Link>

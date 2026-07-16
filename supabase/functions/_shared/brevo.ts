@@ -42,6 +42,8 @@ export interface BrevoEmail {
   orderId?: string | null;
   /** Force un fournisseur (sinon : auto). */
   preferredProvider?: EmailProvider;
+  /** Pièces jointes optionnelles (base64) */
+  attachments?: Array<{ name: string; content: string; type?: string }>;
 }
 
 export interface SendResult {
@@ -112,6 +114,9 @@ async function callBrevo(opts: BrevoEmail) {
   if (opts.text) body.textContent = opts.text;
   if (opts.replyTo) body.replyTo = { email: opts.replyTo };
   if (opts.category) body.tags = [opts.category];
+  if (opts.attachments?.length) {
+    body.attachment = opts.attachments.map((a) => ({ name: a.name, content: a.content }));
+  }
 
   const resp = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
@@ -147,6 +152,14 @@ async function callResend(opts: BrevoEmail, useFallbackFrom = false) {
   if (opts.text) body.text = opts.text;
   if (opts.replyTo) body.reply_to = opts.replyTo;
   if (opts.category) body.tags = [{ name: "category", value: opts.category }];
+  if (opts.attachments?.length) {
+    body.attachments = opts.attachments.map((a) => ({
+      filename: a.name,
+      content: a.content,
+      content_type: a.type || "application/pdf",
+    }));
+  }
+
 
   const resp = await fetch("https://api.resend.com/emails", {
     method: "POST",

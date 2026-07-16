@@ -44,7 +44,6 @@ const Actualites = () => {
     { value: "general", label: "Général" },
     { value: "education", label: "Éducation" },
     { value: "bureautique", label: "Bureautique" },
-    { value: "resources", label: "Ressources" },
     { value: "news", label: "Actualités" },
     { value: "guides", label: "Guides" },
   ];
@@ -269,8 +268,8 @@ const Actualites = () => {
               Vous êtes auteur ou enseignant ?
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Partagez vos connaissances avec des milliers d'étudiants et professionnels en publiant vos articles, 
-              ouvrages et ressources éducatives et bureautiques sur Scoly.
+              Partagez vos connaissances avec des milliers d'étudiants et professionnels en publiant vos articles,
+              guides pratiques et conseils bureautiques sur Scoly.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               {user ? (

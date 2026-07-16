@@ -159,9 +159,11 @@ const AdvertisementsManagement = () => {
 
     setUploading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Authentification requise");
       const fileExt = file.name.split(".").pop();
       const folder = isVideo ? "videos" : "images";
-      const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const fileName = `${user.id}/${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("advertisement-media")

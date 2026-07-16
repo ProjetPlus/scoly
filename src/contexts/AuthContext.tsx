@@ -90,7 +90,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Même utilisateur, même canal : ne rien faire (évite la cascade de re-fetch/clignotement)
         return;
       }
+      const isNewUser = currentUserId !== userId;
       currentUserId = userId;
+      // On ne remet rolesLoading à true que si l'utilisateur change réellement,
+      // sinon la barre de navigation clignote à chaque refresh de token.
+      if (isNewUser) setRolesLoading(true);
 
       if (rolesChannel) {
         supabase.removeChannel(rolesChannel);

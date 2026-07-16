@@ -57,6 +57,7 @@ interface Article {
   views: number;
   likes: number;
   published_at: string | null;
+  updated_at?: string | null;
   author_id: string;
   created_at: string | null;
 }
@@ -365,7 +366,6 @@ const ArticleDetail = () => {
       'general': 'Général',
       'education': 'Éducation',
       'bureautique': 'Bureautique',
-      'resources': 'Ressources',
       'news': 'Actualités',
       'guides': 'Guides'
     };
@@ -422,17 +422,73 @@ const ArticleDetail = () => {
     );
   }
 
+  const absoluteUrl = (value?: string | null) => {
+    if (!value) return "https://scoly.ci/og-image.png";
+    if (value.startsWith("http://") || value.startsWith("https://")) return value;
+    return `https://scoly.ci${value.startsWith("/") ? value : `/${value}`}`;
+  };
+
+  const articleTitle = getTitle();
+  const articleDescription = getExcerpt() || `Découvrez ${articleTitle} sur Scoly.`;
+  const canonicalUrl = `https://scoly.ci/actualites/${article.id}`;
+  const authorName = author ? `${author.first_name || ""} ${author.last_name || ""}`.trim() || "Scoly" : "Scoly";
+  const articleImage = absoluteUrl(article.cover_image);
+  const publishedAt = article.published_at || article.created_at || new Date().toISOString();
+  const modifiedAt = article.updated_at || article.published_at || article.created_at || publishedAt;
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${canonicalUrl}#article`,
+    headline: articleTitle,
+    description: articleDescription,
+    image: [articleImage],
+    inLanguage: "fr-CI",
+    articleSection: getCategoryLabel(article.category),
+    datePublished: publishedAt,
+    dateModified: modifiedAt,
+    mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
+    author: { "@type": "Person", name: authorName },
+    publisher: {
+      "@type": "Organization",
+      name: "Scoly",
+      url: "https://scoly.ci",
+      logo: { "@type": "ImageObject", url: "https://scoly.ci/logo-scoly.png", width: 512, height: 512 },
+    },
+  };
+  const articleWebPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": canonicalUrl,
+    url: canonicalUrl,
+    name: articleTitle,
+    description: articleDescription,
+    inLanguage: "fr-CI",
+    isPartOf: { "@type": "WebSite", name: "Scoly", url: "https://scoly.ci" },
+    primaryImageOfPage: { "@type": "ImageObject", url: articleImage },
+  };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: "https://scoly.ci/" },
+      { "@type": "ListItem", position: 2, name: "Actualités", item: "https://scoly.ci/actualites" },
+      { "@type": "ListItem", position: 3, name: articleTitle, item: canonicalUrl },
+    ],
+  };
+
   return (
     <main className="min-h-screen bg-background">
       <SEOHead 
-        title={getTitle()}
-        description={getExcerpt() || `Découvrez cet article sur Scoly`}
-        url={`https://scoly.ci/actualites/${article.id}`}
-        image={article.cover_image || undefined}
+        title={articleTitle}
+        description={articleDescription}
+        url={canonicalUrl}
+        image={articleImage}
         type="article"
-        author={author ? `${author.first_name} ${author.last_name}` : undefined}
-        publishedTime={article.published_at || undefined}
+        author={authorName}
+        publishedTime={publishedAt}
+        modifiedTime={modifiedAt}
         keywords={["article", getCategoryLabel(article.category), "éducation", "Côte d'Ivoire"]}
+        structuredData={[articleJsonLd, articleWebPageJsonLd, breadcrumbJsonLd]}
       />
       <Navbar />
       

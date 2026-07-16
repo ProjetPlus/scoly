@@ -1,5 +1,5 @@
 // Service Worker for PWA Web Push Notifications
-const CACHE_NAME = 'scoly-v2';
+const CACHE_NAME = 'scoly-v5';
 
 // Install event
 self.addEventListener('install', (event) => {

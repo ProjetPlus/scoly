@@ -212,16 +212,10 @@ const Account = () => {
 
   const handleConfirmDelivery = async (orderId: string) => {
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ 
-          customer_confirmed_at: new Date().toISOString(),
-          status: 'delivered'
-        })
-        .eq('id', orderId)
-        .eq('user_id', user?.id);
+      const { data: accepted, error } = await (supabase as any).rpc('confirm_order_receipt', { _order_id: orderId });
 
       if (error) throw error;
+      if (!accepted) throw new Error('Commande non autorisée');
 
       toast({
         title: "Livraison confirmée",
@@ -467,8 +461,8 @@ const Account = () => {
 
   // Calculate stats
   const totalOrders = orders.length;
-  const deliveredOrders = orders.filter(o => o.status === 'delivered').length;
-  const totalSpent = orders.filter(o => o.status === 'delivered').reduce((acc, o) => acc + o.total_amount, 0);
+  const deliveredOrders = orders.filter(o => !!o.customer_confirmed_at || o.status === 'delivered').length;
+  const totalSpent = orders.filter(o => !!o.customer_confirmed_at || o.status === 'delivered').reduce((acc, o) => acc + o.total_amount, 0);
 
   if (!user) return null;
 
@@ -684,7 +678,7 @@ const Account = () => {
                         {canConfirmDelivery(order) && (
                           <div className="mt-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-900">
                             <p className="text-sm text-green-700 dark:text-green-400 mb-3">
-                              🎉 Votre commande a été livrée ! Confirmez la réception pour valider.
+                              Le livreur indique vous avoir remis cette commande. Confirmez uniquement si vous l'avez bien reçue.
                             </p>
                             <Button
                               variant="hero"

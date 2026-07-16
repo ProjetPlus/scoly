@@ -28,6 +28,34 @@ interface MediaItem {
 
 type GenerationMode = "single_image" | "video" | "image_video" | "multi_image" | "text_only";
 
+// Guardrail: any base64 data URL larger than 100 KB is uploaded to Storage
+// instead of being persisted in the DB (prevents the articles table bloat
+// that previously caused 1700ms query timeouts).
+const BASE64_INLINE_LIMIT_BYTES = 100 * 1024;
+
+async function ensureStorageUrl(url: string, userId: string): Promise<string> {
+  if (!url || !url.startsWith("data:")) return url;
+  const match = url.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) return url;
+  const mime = match[1] || "image/jpeg";
+  const b64 = match[2];
+  const approxBytes = Math.floor((b64.length * 3) / 4);
+  if (approxBytes <= BASE64_INLINE_LIMIT_BYTES) return url;
+
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const ext = (mime.split("/")[1] || "jpg").split("+")[0];
+  const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await supabase.storage
+    .from("article-images")
+    .upload(path, new Blob([bytes], { type: mime }), { contentType: mime, upsert: false });
+  if (error) throw error;
+  const { data } = supabase.storage.from("article-images").getPublicUrl(path);
+  return data.publicUrl;
+}
+
+
 const generationOptions: { mode: GenerationMode; icon: React.ReactNode; label: string; description: string }[] = [
   { mode: "single_image", icon: <ImageIcon size={22} />, label: "Avec image IA", description: "Une image unique ultra-réaliste générée par l'IA" },
   { mode: "multi_image", icon: <Images size={22} />, label: "Galerie d'images", description: "3-4 images thématiques cohérentes" },
@@ -74,7 +102,6 @@ const WriteArticle = () => {
     { value: "general", label: "Général" },
     { value: "education", label: "Éducation" },
     { value: "bureautique", label: "Bureautique" },
-    { value: "resources", label: "Ressources" },
     { value: "news", label: "Actualités" },
     { value: "guides", label: "Guides" },
   ];
@@ -242,8 +269,13 @@ const WriteArticle = () => {
 
     setLoading(true);
     try {
-      const coverImage = form.media.length > 0 ? form.media[0].url : null;
-      const mediaJson = form.media.map(item => ({ url: item.url, type: item.type }));
+      // Guardrail: never store heavy base64 blobs in the DB. Upload to Storage.
+      const processedMedia = await Promise.all(
+        form.media.map(async (item) => ({ url: await ensureStorageUrl(item.url, user.id), type: item.type }))
+      );
+      const coverImage = processedMedia.length > 0 ? processedMedia[0].url : null;
+      const mediaJson = processedMedia.map(item => ({ url: item.url, type: item.type }));
+
 
       const articleData = {
         author_id: user.id,

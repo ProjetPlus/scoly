@@ -7,9 +7,13 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import SEOHead from "@/components/SEOHead";
+import SmartImage from "@/components/SmartImage";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSearchParams, Link } from "react-router-dom";
+import { applySort, type SortMode } from "@/lib/productSort";
+import { getCategoryImageUrl, sortCategories } from "@/lib/categoryAssets";
+import { useQuery } from "@tanstack/react-query";
 
 interface Product {
   id: string;
@@ -32,6 +36,8 @@ interface Product {
   brand: string | null;
   author_details: string | null;
   metadata: any;
+  views?: number | null;
+  created_at?: string | null;
 }
 
 interface Category {
@@ -41,68 +47,61 @@ interface Category {
   name_de: string;
   name_es: string;
   slug: string;
+  image_url: string | null;
 }
 
 const Shop = () => {
   const { language, t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
-    searchParams.get("category") || null
-  );
-  const [sortBy, setSortBy] = useState("newest");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortMode>("recommended");
   const [selectedPublisher, setSelectedPublisher] = useState("all");
 
   const publishers = ["NEI/CEDA", "NEI", "CEDA", "EDICEF", "Eburnie", "Vallesse", "JD Editions", "Les Classiques Ivoiriens", "Frat Mat Editions", "SuperNova", "Sud Editions", "Nouvelles Editions Balafon", "S.N.P.E.C.I", "Africa Reflets Editions", "ARE"];
 
-  useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-  }, []);
+  // Cached + shared with the homepage prefetch hook (same query key).
+  const { data: products = [], isLoading: loading } = useQuery({
+    queryKey: ["shop-products", "page-0"],
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    refetchOnWindowFocus: false,
+    queryFn: async (): Promise<Product[]> => {
+      const { data, error } = await supabase
+        .from("products")
+        .select(
+          "id,name_fr,name_en,name_de,name_es,description_fr,description_en,description_de,description_es,price,original_price,discount_percent,stock,image_url,is_featured,category_id,free_shipping,brand,author_details,metadata,views,created_at",
+        )
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .range(0, 1999);
+      if (error) throw error;
+      return (data || []) as any;
+    },
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["shop-categories"],
+    staleTime: 1000 * 60 * 10,
+    queryFn: async (): Promise<Category[]> => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("name_fr");
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   useEffect(() => {
     const categoryParam = searchParams.get("category");
-    if (categoryParam) {
-      const cat = categories.find(c => c.slug === categoryParam);
-      if (cat) {
-        setSelectedCategory(cat.id);
-      }
+    if (categoryParam && categories.length > 0) {
+      const cat = categories.find(c => c.slug === categoryParam || c.id === categoryParam);
+      setSelectedCategory(cat?.id || null);
+    } else if (!categoryParam) {
+      setSelectedCategory(null);
     }
   }, [searchParams, categories]);
-
-  const fetchProducts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProducts(data || []);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name_fr');
-
-      if (error) throw error;
-      setCategories(data || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
 
   const getLocalizedName = (item: Category) => {
     switch (language) {
@@ -131,22 +130,28 @@ const Shop = () => {
     }
   };
 
-  const filteredProducts = products
-    .filter(product => {
-      const name = (productName(product) || '').toLowerCase();
-      const matchesSearch = name.includes(searchQuery.toLowerCase());
-      const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-      const pub = `${product.brand || ""} ${product.author_details || ""} ${(product.metadata as any)?.publisher || ""}`.toLowerCase();
-      const matchesPublisher = selectedPublisher === "all" || pub.includes(selectedPublisher.toLowerCase());
-      return matchesSearch && matchesCategory && matchesPublisher;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'price-asc': return a.price - b.price;
-        case 'price-desc': return b.price - a.price;
-        default: return 0;
-      }
-    });
+  const baseFiltered = products.filter((product) => {
+    const name = (productName(product) || '').toLowerCase();
+    const matchesSearch = name.includes(searchQuery.toLowerCase());
+    const selected = selectedCategory ? categories.find((c) => c.id === selectedCategory) : null;
+    const categoryText = `${selected?.slug || ""} ${selected?.name_fr || ""} ${selected?.name_en || ""}`.toLowerCase();
+    const productText = `${productName(product) || ""} ${product.description_fr || ""} ${product.brand || ""} ${product.author_details || ""} ${product.metadata?.category || ""} ${product.metadata?.cycle || ""}`.toLowerCase();
+    const fallbackCategoryMatch =
+      !!selected &&
+      ((categoryText.includes("maternelle") && /maternelle|prescolaire|préscolaire|pre[- ]?school/.test(productText)) ||
+        (categoryText.includes("primaire") && /\b(cp|ce|cm)\d?\b|primaire|primary/.test(productText)) ||
+        (categoryText.includes("secondaire") && /6[eè]|5[eè]|4[eè]|3[eè]|2nde|1[eè]re|terminale|college|collège|lycee|lycée|secondaire/.test(productText)) ||
+        (categoryText.includes("bureau") && /bureau|bureautique|office|papier|stylo|classeur|enveloppe|cartouche/.test(productText)) ||
+        (categoryText.includes("librairie") && /livre|roman|lecture|cahier|ouvrage|librairie/.test(productText)) ||
+        (categoryText.includes("univers") && /universit|facult|superieur|supérieur/.test(productText)));
+    const matchesCategory = !selectedCategory || product.category_id === selectedCategory || fallbackCategoryMatch;
+    const pub = `${product.brand || ""} ${product.author_details || ""} ${(product.metadata as any)?.publisher || ""}`.toLowerCase();
+    const matchesPublisher = selectedPublisher === "all" || pub.includes(selectedPublisher.toLowerCase());
+    return matchesSearch && matchesCategory && matchesPublisher;
+  });
+
+  const filteredProducts = applySort(baseFiltered as any, sortBy) as Product[];
+  const displayCategories = sortCategories(categories);
 
   return (
     <main className="min-h-screen bg-background">
@@ -178,6 +183,47 @@ const Shop = () => {
         </div>
       </section>
 
+      {/* Categories visual grid */}
+      <section className="bg-background border-b border-border">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex gap-2.5 sm:gap-3 overflow-x-auto pb-1 snap-x">
+            <button
+              onClick={() => handleCategoryClick(null)}
+              className={`snap-start shrink-0 w-[84px] sm:w-[112px] rounded-xl border p-2 text-center transition-all ${
+                !selectedCategory ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:border-primary/40"
+              }`}
+            >
+              <div className="mx-auto mb-1.5 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold text-xs">
+                Tous
+              </div>
+              <span className="block text-[11px] sm:text-xs font-semibold text-foreground leading-tight">Toutes</span>
+            </button>
+            {displayCategories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => handleCategoryClick(cat.id, cat.slug)}
+                className={`snap-start shrink-0 w-[84px] sm:w-[112px] rounded-xl border p-2 text-center transition-all ${
+                  selectedCategory === cat.id ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:border-primary/40"
+                }`}
+              >
+                <SmartImage
+                  src={getCategoryImageUrl(cat)}
+                  alt={cat.name_fr}
+                  className="mx-auto mb-1.5 h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover ring-1 ring-border"
+                  fallbackSrc="/placeholder.svg"
+                  width={56}
+                  height={56}
+                  sizes="56px"
+                />
+                <span className="block text-[11px] sm:text-xs font-semibold text-foreground leading-tight line-clamp-2">
+                  {getLocalizedName(cat)}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Filters bar — sticky toolbar */}
       <div className="sticky top-[56px] md:top-[96px] lg:top-[124px] z-30 bg-background border-b border-border shadow-sm">
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-3">
@@ -193,13 +239,15 @@ const Shop = () => {
           </div>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="hidden sm:block h-10 px-3 rounded-md border border-border bg-card text-sm text-foreground min-w-[160px]"
+            onChange={(e) => setSortBy(e.target.value as SortMode)}
+            className="hidden sm:block h-10 px-3 rounded-md border border-border bg-card text-sm text-foreground min-w-[180px]"
           >
+            <option value="recommended">Recommandés</option>
             <option value="newest">{t.shop.sortNewest}</option>
             <option value="price-asc">{t.shop.sortPriceAsc}</option>
             <option value="price-desc">{t.shop.sortPriceDesc}</option>
             <option value="popular">{t.shop.sortPopular}</option>
+            <option value="rating">Mieux notés</option>
           </select>
           <select
             value={selectedPublisher}
@@ -222,7 +270,7 @@ const Shop = () => {
                 <SheetTitle>Filtres</SheetTitle>
               </SheetHeader>
               <FiltersPanel
-                categories={categories}
+                categories={displayCategories}
                 selectedCategory={selectedCategory}
                 onSelectCategory={handleCategoryClick}
                 getLocalizedName={getLocalizedName}
@@ -246,7 +294,7 @@ const Shop = () => {
             <aside className="hidden lg:block">
               <div className="sticky top-[180px] space-y-4">
                 <FiltersPanel
-                  categories={categories}
+                  categories={displayCategories}
                   selectedCategory={selectedCategory}
                   onSelectCategory={handleCategoryClick}
                   getLocalizedName={getLocalizedName}
@@ -268,7 +316,8 @@ const Shop = () => {
 
             <div>
               {loading ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
+
                   {[...Array(10)].map((_, i) => (
                     <div key={i} className="bg-card rounded-lg border border-border p-2 animate-pulse">
                       <div className="aspect-square bg-muted rounded mb-2" />
@@ -284,7 +333,7 @@ const Shop = () => {
                   <p className="text-sm text-muted-foreground mt-1">{t.common.noResults}</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
                   {filteredProducts.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
@@ -305,8 +354,8 @@ interface FiltersPanelProps {
   selectedCategory: string | null;
   onSelectCategory: (id: string | null, slug?: string) => void;
   getLocalizedName: (c: Category) => string;
-  sortBy: string;
-  setSortBy: (s: string) => void;
+  sortBy: SortMode;
+  setSortBy: (s: SortMode) => void;
   publishers: string[];
   selectedPublisher: string;
   setSelectedPublisher: (s: string) => void;
@@ -370,13 +419,15 @@ const FiltersPanel = ({
         <h3 className="font-bold text-sm text-foreground mb-3 uppercase tracking-wide">Trier par</h3>
         <select
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
+          onChange={(e) => setSortBy(e.target.value as SortMode)}
           className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm"
         >
+          <option value="recommended">Recommandés</option>
           <option value="newest">{t.shop.sortNewest}</option>
           <option value="price-asc">{t.shop.sortPriceAsc}</option>
           <option value="price-desc">{t.shop.sortPriceDesc}</option>
           <option value="popular">{t.shop.sortPopular}</option>
+          <option value="rating">Mieux notés</option>
         </select>
       </div>
     )}

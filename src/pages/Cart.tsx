@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Truck, ShieldCheck } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Truck, ShieldCheck, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -7,6 +7,7 @@ import SmartImage from "@/components/SmartImage";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { MIN_ORDER_AMOUNT, isOrderAmountValid, formatMinOrderMessage } from "@/lib/orderRules";
 
 const Cart = () => {
   const { language, t } = useLanguage();
@@ -25,6 +26,9 @@ const Cart = () => {
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("fr-FR").format(price) + " " + t.common.currency;
+
+  const meetsMinimum = isOrderAmountValid(total);
+  const missingForMinimum = Math.max(0, MIN_ORDER_AMOUNT - total);
 
   const checkoutHref = user ? "/checkout" : "/auth?redirect=/checkout";
   const checkoutLabel = user ? t.shop.proceedCheckout : `${t.nav.login} pour commander`;
@@ -179,12 +183,27 @@ const Cart = () => {
                       <span className="text-primary tabular-nums">{formatPrice(total)}</span>
                     </div>
                   </div>
-                  <Link to={checkoutHref} className="block">
-                    <Button variant="default" className="w-full">
+                  {!meetsMinimum && (
+                    <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs text-amber-900 dark:text-amber-200">
+                      <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                      <span>
+                        {formatMinOrderMessage()} Il manque <strong>{formatPrice(missingForMinimum)}</strong>.
+                      </span>
+                    </div>
+                  )}
+                  {meetsMinimum ? (
+                    <Link to={checkoutHref} className="block">
+                      <Button variant="default" className="w-full">
+                        {checkoutLabel}
+                        <ArrowRight size={18} />
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button variant="default" className="w-full" disabled>
                       {checkoutLabel}
                       <ArrowRight size={18} />
                     </Button>
-                  </Link>
+                  )}
                   <Link to="/shop" className="block mt-2">
                     <Button variant="outline" className="w-full">{t.shop.continueShopping}</Button>
                   </Link>
@@ -198,17 +217,29 @@ const Cart = () => {
       {/* Mobile sticky checkout bar */}
       {items.length > 0 && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.08)] px-3 py-2.5">
+          {!meetsMinimum && (
+            <p className="text-[11px] text-amber-700 dark:text-amber-300 mb-1.5 flex items-center gap-1">
+              <AlertCircle size={12} /> Minimum {formatPrice(MIN_ORDER_AMOUNT)} — il manque {formatPrice(missingForMinimum)}
+            </p>
+          )}
           <div className="flex items-center gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-[11px] text-muted-foreground">{t.shop.total}</p>
               <p className="text-base font-bold text-primary tabular-nums truncate">{formatPrice(total)}</p>
             </div>
-            <Link to={checkoutHref} className="flex-1">
-              <Button variant="default" className="w-full h-11">
+            {meetsMinimum ? (
+              <Link to={checkoutHref} className="flex-1">
+                <Button variant="default" className="w-full h-11">
+                  Commander
+                  <ArrowRight size={16} />
+                </Button>
+              </Link>
+            ) : (
+              <Button variant="default" className="flex-1 h-11" disabled>
                 Commander
                 <ArrowRight size={16} />
               </Button>
-            </Link>
+            )}
           </div>
         </div>
       )}

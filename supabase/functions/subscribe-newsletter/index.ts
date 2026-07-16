@@ -35,71 +35,87 @@ Deno.serve(async (req) => {
     });
     if (ipRl && ipRl[0] && !ipRl[0].allowed) return bad('Trop de tentatives. Réessayez plus tard.', 429);
 
-    // Existant ?
+    // Generate confirmation + unsubscribe tokens (raw → returned in email link, hashed in DB)
+    const confirmToken = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+    const unsubToken = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+    const sha256Hex = async (s: string) => {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    };
+    const confirmHash = await sha256Hex(confirmToken);
+    const unsubHash = await sha256Hex(unsubToken);
+
     const { data: existing } = await admin.from('newsletter_subscribers')
-      .select('id, confirmed, is_active').eq('email', email).maybeSingle();
+      .select('id, confirmed, is_active, unsubscribe_token_hash').eq('email', email).maybeSingle();
 
     let subscriberId: string;
     let already = false;
+    let activeUnsubToken = unsubToken;
     if (existing) {
       subscriberId = existing.id;
       if (existing.confirmed && existing.is_active) already = true;
+      // If already confirmed & active, do NOT silently re-confirm — just acknowledge and stop.
+      if (already) {
+        return ok({
+          success: true,
+          already: true,
+          message: 'Vous êtes déjà abonné à notre newsletter.',
+        });
+      }
+      // Re-issue confirmation token; keep existing unsub token if present
       await admin.from('newsletter_subscribers').update({
         first_name: first_name ?? undefined,
         source,
-        confirmed: true,
-        is_active: true,
-        confirmed_at: new Date().toISOString(),
+        confirmed: false,
+        is_active: false,
+        confirmation_token_hash: confirmHash,
         confirmation_sent_at: new Date().toISOString(),
+        unsubscribe_token_hash: existing.unsubscribe_token_hash ?? unsubHash,
         unsubscribed_at: null,
       }).eq('id', existing.id);
     } else {
       const { data: inserted, error } = await admin.from('newsletter_subscribers').insert({
         email, first_name, source,
-        is_active: true, confirmed: true,
-        confirmed_at: new Date().toISOString(),
+        is_active: false, confirmed: false,
+        confirmation_token_hash: confirmHash,
+        unsubscribe_token_hash: unsubHash,
         confirmation_sent_at: new Date().toISOString(),
       }).select('id').single();
       if (error) throw error;
       subscriberId = inserted.id;
     }
 
-    // Email de bienvenue (toujours envoyé, dédupliqué par email + jour)
-    const dedupeKey = `welcome:${email}:${new Date().toISOString().slice(0, 10)}`;
+    // Double opt-in confirmation email
+    const dedupeKey = `confirm:${email}:${new Date().toISOString().slice(0, 10)}`;
+    const confirmUrl = `${SITE_URL}/unsubscribe?confirm=${confirmToken}`;
+    const unsubUrl = `${SITE_URL}/unsubscribe?token=${activeUnsubToken}`;
     const html = brandedEmail({
-      title: `Bienvenue sur Scoly${first_name ? `, ${first_name}` : ''} 👋`,
+      title: `Confirmez votre inscription${first_name ? `, ${first_name}` : ''} ✉️`,
       bodyHtml: `
-        <p>Merci de rejoindre la communauté <strong>Scoly</strong> !</p>
-        <p>Vous recevrez désormais en exclusivité :</p>
-        <ul>
-          <li>🎁 Promotions et ventes flash sur les fournitures scolaires &amp; bureautiques</li>
-          <li>📚 Conseils rentrée et sélections d'experts</li>
-          <li>🚚 Annonces de livraison gratuite</li>
-        </ul>
-        <p>Votre abonnement est <strong>actif immédiatement</strong>. Bonne découverte !</p>
+        <p>Merci de votre intérêt pour <strong>Scoly</strong> !</p>
+        <p>Pour finaliser votre inscription à notre newsletter et commencer à recevoir nos offres exclusives, cliquez sur le bouton ci-dessous.</p>
+        <p style="color:#64748b;font-size:13px;">Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email — aucun abonnement ne sera activé.</p>
       `,
-      ctaText: 'Découvrir la boutique',
-      ctaUrl: `${SITE_URL}/shop`,
-      footerExtra: `<a href="${SITE_URL}/unsubscribe?token=${subscriberId}" style="color:#94a3b8;text-decoration:none;">Se désinscrire</a>`,
+      ctaText: 'Confirmer mon inscription',
+      ctaUrl: confirmUrl,
+      footerExtra: `<a href="${unsubUrl}" style="color:#94a3b8;text-decoration:none;">Se désinscrire</a>`,
     });
 
     await sendBrevoEmail({
       from: { name: 'Scoly', email: 'newsletter@scoly.ci' },
       to: email,
-      subject: '🎉 Bienvenue sur Scoly — votre abonnement est actif',
+      subject: '✉️ Confirmez votre inscription à la newsletter Scoly',
       html,
-      category: 'welcome',
-      emailType: 'newsletter_welcome',
+      category: 'doi',
+      emailType: 'newsletter_confirmation',
       dedupeKey,
       metadata: { subscriber_id: subscriberId, source },
-    }).catch((e) => console.error('welcome email error:', e));
+    }).catch((e) => console.error('confirmation email error:', e));
 
     return ok({
       success: true,
-      already,
-      message: already
-        ? 'Vous êtes déjà abonné — un nouvel email de bienvenue vient de partir.'
-        : 'Abonnement confirmé. Vérifiez votre boîte pour l\'email de bienvenue.',
+      already: false,
+      message: 'Vérifiez votre boîte mail et cliquez sur le lien pour confirmer votre abonnement.',
     });
   } catch (e) {
     console.error('subscribe-newsletter error:', e);

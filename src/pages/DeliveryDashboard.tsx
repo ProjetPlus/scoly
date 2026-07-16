@@ -145,7 +145,8 @@ const DeliveryDashboard = () => {
 
   const pendingOrders = orders.filter((o) => !o.delivery_received_at);
   const inProgressOrders = orders.filter((o) => o.delivery_received_at && !o.delivery_delivered_at);
-  const deliveredOrders = orders.filter((o) => o.delivery_delivered_at);
+  const awaitingConfirmationOrders = orders.filter((o) => o.delivery_delivered_at && !o.customer_confirmed_at);
+  const deliveredOrders = orders.filter((o) => o.customer_confirmed_at);
 
   if (loading) {
     return (
@@ -275,6 +276,12 @@ const DeliveryDashboard = () => {
               </TabsTrigger>
               <TabsTrigger value="delivered" className="gap-2 text-xs sm:text-sm">
                 <CheckCircle size={16} />
+                <span className="hidden sm:inline">Attente client</span>
+                <span className="sm:hidden">Att.</span>
+                ({awaitingConfirmationOrders.length})
+              </TabsTrigger>
+              <TabsTrigger value="validated" className="gap-2 text-xs sm:text-sm">
+                <CheckCircle size={16} />
                 <span className="hidden sm:inline">Livrées</span>
                 <span className="sm:hidden">OK</span>
                 ({deliveredOrders.length})
@@ -324,6 +331,25 @@ const DeliveryDashboard = () => {
             </TabsContent>
 
             <TabsContent value="delivered">
+              <div className="grid gap-4">
+                {awaitingConfirmationOrders.map((order) => (
+                  <OrderCard
+                    key={order.id}
+                    order={order}
+                    formatPrice={formatPrice}
+                    formatDate={formatDate}
+                  />
+                ))}
+                {awaitingConfirmationOrders.length === 0 && (
+                  <div className="text-center py-12 bg-card rounded-xl border border-border">
+                    <Clock size={48} className="mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Aucune livraison en attente de confirmation client</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="validated">
               <div className="grid gap-4">
                 {deliveredOrders.map((order) => (
                   <OrderCard
@@ -384,7 +410,7 @@ const OrderCard = ({
       return <Badge className="bg-green-500 text-white">Confirmée</Badge>;
     }
     if (order.delivery_delivered_at) {
-      return <Badge className="bg-purple-500 text-white">Livrée</Badge>;
+      return <Badge className="bg-purple-500 text-white">Attente client</Badge>;
     }
     if (order.delivery_received_at) {
       return <Badge className="bg-blue-500 text-white">En cours</Badge>;
@@ -445,7 +471,7 @@ const OrderCard = ({
             {showDeliverButton && (
               <Button variant="hero" onClick={onDeliver} className="flex-1">
                 <CheckCircle size={18} />
-                Marquer livrée
+                Déclarer remise au client
               </Button>
             )}
           </div>

@@ -44,10 +44,16 @@ export const ImageUpload = ({
 
     setUploading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Vous devez être connecté pour téléverser une image");
+        setUploading(false);
+        return;
+      }
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const folder = bucket === "product-images" ? "products" : "articles";
-      const filePath = `${folder}/${fileName}`;
+      const filePath = `${user.id}/${folder}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from(bucket)
