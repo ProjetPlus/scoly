@@ -23,6 +23,29 @@ Deno.serve(async (req) => {
       }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Require authentication + admin/moderator role
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const authed = createClient(SUPABASE_URL, anonKey, { global: { headers: { Authorization: authHeader } } });
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsErr } = await authed.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const userId = claimsData.claims.sub as string;
+    const sbAdmin = createClient(SUPABASE_URL, SERVICE_KEY);
+    const { data: roles } = await sbAdmin.from('user_roles').select('role').eq('user_id', userId);
+    const roleList = (roles || []).map((r: any) => r.role);
+    if (!roleList.includes('admin') && !roleList.includes('moderator')) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const { to, template_key, variables = {}, body: rawBody } = await req.json();
     if (!to) return new Response(JSON.stringify({ error: 'to requis' }), {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -30,8 +53,7 @@ Deno.serve(async (req) => {
 
     let body = rawBody as string | undefined;
     if (!body && template_key) {
-      const sb = createClient(SUPABASE_URL, SERVICE_KEY);
-      const { data: tpl } = await sb.from('sms_templates')
+      const { data: tpl } = await sbAdmin.from('sms_templates')
         .select('body,is_active').eq('key', template_key).maybeSingle();
       if (!tpl || !tpl.is_active) {
         return new Response(JSON.stringify({ error: `Modèle inactif ou introuvable: ${template_key}` }),
