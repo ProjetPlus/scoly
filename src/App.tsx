@@ -119,6 +119,8 @@ const App = () => (
                       <Route path="/auth/confirm" element={<AuthConfirm />} />
                       <Route path="/auth/reset-password" element={<ResetPassword />} />
                       <Route path="/kits-ecole" element={<KitsEcole />} />
+                      <Route path="/kits-scolaires" element={<KitsEcole />} />
+                      <Route path="/me" element={<RoleGuard><Account /></RoleGuard>} />
                       <Route path="/parrainage" element={<Referral />} />
                       <Route path="/livraison-retours" element={<DeliveryReturns />} />
                       <Route path="/livraison" element={<DeliveryReturns />} />
