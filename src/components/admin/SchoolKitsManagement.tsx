@@ -391,38 +391,48 @@ const SchoolKitsManagement = () => {
                       <p className="text-xs text-muted-foreground">Ajoutez au moins un article à la composition.</p>
                     )}
                     {form.items.map((it, idx) => (
-                      <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-                        <Input
-                          className="col-span-6"
-                          value={it.item_name}
-                          onChange={(e) => updateItem(idx, { item_name: e.target.value })}
-                          placeholder="Nom de l'article"
-                        />
-                        <Input
-                          className="col-span-2"
-                          type="number"
-                          min={1}
-                          value={it.quantity}
-                          onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })}
-                        />
-                        <Input
-                          className="col-span-3"
-                          type="number"
-                          min={0}
-                          value={it.estimated_price}
-                          onChange={(e) => updateItem(idx, { estimated_price: Number(e.target.value) })}
-                          placeholder="Prix"
-                        />
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="col-span-1"
-                          onClick={() => removeItem(idx)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <div key={idx} className="space-y-1 rounded-md border p-2">
+                        <div className="grid grid-cols-12 gap-2 items-center">
+                          <Input
+                            className="col-span-6"
+                            value={it.item_name}
+                            onChange={(e) => updateItem(idx, { item_name: e.target.value })}
+                            placeholder="Nom de l'article"
+                          />
+                          <Input
+                            className="col-span-2"
+                            type="number"
+                            min={1}
+                            value={it.quantity}
+                            onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })}
+                          />
+                          <Input
+                            className="col-span-3"
+                            type="number"
+                            min={0}
+                            value={it.estimated_price}
+                            onChange={(e) => updateItem(idx, { estimated_price: Number(e.target.value) })}
+                            placeholder="Prix"
+                          />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="col-span-1"
+                            onClick={() => removeItem(idx)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <label className="flex items-center gap-2 text-xs text-muted-foreground pl-1">
+                          <Switch
+                            checked={it.is_optional}
+                            onCheckedChange={(v) => updateItem(idx, { is_optional: v })}
+                          />
+                          Article optionnel (non inclus par défaut dans le prix côté client)
+                        </label>
                       </div>
                     ))}
+
                   </div>
                 </div>
                 <div className="md:col-span-2 flex items-center justify-between p-3 rounded-lg bg-muted/40">
