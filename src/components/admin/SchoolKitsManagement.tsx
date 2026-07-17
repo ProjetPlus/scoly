@@ -122,7 +122,8 @@ const SchoolKitsManagement = () => {
   };
 
   const addItem = () =>
-    setForm((f) => ({ ...f, items: [...f.items, { item_name: "", quantity: 1, estimated_price: 0 }] }));
+    setForm((f) => ({ ...f, items: [...f.items, { item_name: "", quantity: 1, estimated_price: 0, is_optional: false }] }));
+
   const removeItem = (idx: number) =>
     setForm((f) => ({ ...f, items: f.items.filter((_, i) => i !== idx) }));
   const updateItem = (idx: number, patch: Partial<KitItem>) =>
