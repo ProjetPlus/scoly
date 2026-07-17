@@ -311,13 +311,56 @@ const SchoolKitsManagement = () => {
                   </p>
                 </div>
                 <div className="md:col-span-2 space-y-2">
-                  <Label>Image de couverture (URL)</Label>
-                  <Input
-                    value={form.image_url}
-                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                    placeholder="https://… (laissez vide pour une couverture générée automatiquement)"
-                  />
+                  <Label>Image de couverture (Upload)</Label>
+                  <div className="flex items-start gap-3">
+                    <div className="w-24 h-24 rounded-lg border bg-muted/40 flex items-center justify-center overflow-hidden shrink-0">
+                      {form.image_url ? (
+                        <img src={form.image_url} alt="Aperçu" className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) uploadCover(f);
+                          e.target.value = "";
+                        }}
+                      />
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploading}
+                        >
+                          <Upload className="h-4 w-4 mr-1" />
+                          {uploading ? "Envoi…" : form.image_url ? "Remplacer" : "Choisir une image"}
+                        </Button>
+                        {form.image_url && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setForm({ ...form, image_url: "" })}
+                          >
+                            Supprimer
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        JPG, PNG ou WEBP · max 5 Mo. Laissez vide pour une couverture SCOOLY générée automatiquement.
+                      </p>
+                    </div>
+                  </div>
                 </div>
+
                 <div className="md:col-span-2 space-y-2">
                   <Label>Description</Label>
                   <Textarea
