@@ -91,9 +91,10 @@ const SchoolKitsManagement = () => {
   const openEdit = async (kit: Kit) => {
     const { data: items } = await supabase
       .from("smart_kit_items")
-      .select("item_name,quantity,estimated_price")
+      .select("item_name,quantity,estimated_price,is_optional")
       .eq("kit_id", kit.id)
       .order("sort_order", { ascending: true });
+
     let schoolOpt: SchoolOption | null = null;
     if (kit.school_id) {
       const { data: s } = await supabase
