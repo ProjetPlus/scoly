@@ -122,6 +122,7 @@ const Admin = () => {
       label: "Catalogue & Ventes",
       items: [
         { id: "products", label: "Produits", icon: Package },
+        { id: "school_kits", label: "Kit Scolaire", icon: Package },
         { id: "categories", label: "Catégories", icon: FolderTree },
         { id: "orders", label: "Commandes", icon: ShoppingBag },
         { id: "payments", label: "Paiements", icon: DollarSign },
@@ -129,9 +130,9 @@ const Admin = () => {
         { id: "promotions_mgmt", label: "Promotions", icon: Tag },
         { id: "flash_deals", label: "Ventes Flash", icon: Zap },
         { id: "promotions", label: "Coupons", icon: Tag },
-        { id: "school_kits", label: "Kits École", icon: Package },
       ],
     },
+
     {
       label: "Utilisateurs & Équipe",
       items: [
