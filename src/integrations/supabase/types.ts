@@ -2267,6 +2267,7 @@ export type Database = {
           category_hint: string | null
           estimated_price: number
           id: string
+          is_optional: boolean
           is_required: boolean | null
           item_name: string
           kit_id: string
@@ -2278,6 +2279,7 @@ export type Database = {
           category_hint?: string | null
           estimated_price?: number
           id?: string
+          is_optional?: boolean
           is_required?: boolean | null
           item_name: string
           kit_id: string
@@ -2289,6 +2291,7 @@ export type Database = {
           category_hint?: string | null
           estimated_price?: number
           id?: string
+          is_optional?: boolean
           is_required?: boolean | null
           item_name?: string
           kit_id?: string

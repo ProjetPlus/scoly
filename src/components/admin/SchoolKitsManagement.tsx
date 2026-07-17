@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Plus, Trash2, Pencil, Package, Save, X } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { Plus, Trash2, Pencil, Package, Save, X, Upload, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+
 import {
   Dialog,
   DialogContent,
@@ -26,7 +28,7 @@ const CATEGORIES = [
   { value: "kit_complet_clad", label: "Kit Complet (Cahiers + Livres + Annales + Dictionnaires)" },
 ];
 
-type KitItem = { item_name: string; quantity: number; estimated_price: number };
+type KitItem = { item_name: string; quantity: number; estimated_price: number; is_optional: boolean };
 type Kit = {
   id: string;
   name: string;
@@ -58,12 +60,46 @@ const emptyForm = {
   items: [] as KitItem[],
 };
 
+
 const SchoolKitsManagement = () => {
   const [kits, setKits] = useState<Kit[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({ ...emptyForm });
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const uploadCover = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Seules les images sont autorisées (JPG, PNG, WEBP).");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("L'image ne doit pas dépasser 5 Mo.");
+      return;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return toast.error("Non authentifié");
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/kits/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("product-images").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+      if (error) throw error;
+      const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+      setForm((f) => ({ ...f, image_url: data.publicUrl }));
+      toast.success("Image téléchargée.");
+    } catch (e: any) {
+      toast.error(e.message || "Échec de l'upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
 
   const load = async () => {
     setLoading(true);
@@ -88,9 +124,10 @@ const SchoolKitsManagement = () => {
   const openEdit = async (kit: Kit) => {
     const { data: items } = await supabase
       .from("smart_kit_items")
-      .select("item_name,quantity,estimated_price")
+      .select("item_name,quantity,estimated_price,is_optional")
       .eq("kit_id", kit.id)
       .order("sort_order", { ascending: true });
+
     let schoolOpt: SchoolOption | null = null;
     if (kit.school_id) {
       const { data: s } = await supabase
@@ -119,7 +156,8 @@ const SchoolKitsManagement = () => {
   };
 
   const addItem = () =>
-    setForm((f) => ({ ...f, items: [...f.items, { item_name: "", quantity: 1, estimated_price: 0 }] }));
+    setForm((f) => ({ ...f, items: [...f.items, { item_name: "", quantity: 1, estimated_price: 0, is_optional: false }] }));
+
   const removeItem = (idx: number) =>
     setForm((f) => ({ ...f, items: f.items.filter((_, i) => i !== idx) }));
   const updateItem = (idx: number, patch: Partial<KitItem>) =>
@@ -171,8 +209,10 @@ const SchoolKitsManagement = () => {
             item_name: i.item_name,
             quantity: Number(i.quantity) || 1,
             estimated_price: Number(i.estimated_price) || 0,
+            is_optional: !!i.is_optional,
             sort_order: idx,
           }));
+
         if (rows.length > 0) {
           const { error } = await supabase.from("smart_kit_items").insert(rows);
           if (error) throw error;
@@ -271,13 +311,56 @@ const SchoolKitsManagement = () => {
                   </p>
                 </div>
                 <div className="md:col-span-2 space-y-2">
-                  <Label>Image de couverture (URL)</Label>
-                  <Input
-                    value={form.image_url}
-                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                    placeholder="https://… (laissez vide pour une couverture générée automatiquement)"
-                  />
+                  <Label>Image de couverture (Upload)</Label>
+                  <div className="flex items-start gap-3">
+                    <div className="w-24 h-24 rounded-lg border bg-muted/40 flex items-center justify-center overflow-hidden shrink-0">
+                      {form.image_url ? (
+                        <img src={form.image_url} alt="Aperçu" className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) uploadCover(f);
+                          e.target.value = "";
+                        }}
+                      />
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploading}
+                        >
+                          <Upload className="h-4 w-4 mr-1" />
+                          {uploading ? "Envoi…" : form.image_url ? "Remplacer" : "Choisir une image"}
+                        </Button>
+                        {form.image_url && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setForm({ ...form, image_url: "" })}
+                          >
+                            Supprimer
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        JPG, PNG ou WEBP · max 5 Mo. Laissez vide pour une couverture SCOOLY générée automatiquement.
+                      </p>
+                    </div>
+                  </div>
                 </div>
+
                 <div className="md:col-span-2 space-y-2">
                   <Label>Description</Label>
                   <Textarea
@@ -308,38 +391,48 @@ const SchoolKitsManagement = () => {
                       <p className="text-xs text-muted-foreground">Ajoutez au moins un article à la composition.</p>
                     )}
                     {form.items.map((it, idx) => (
-                      <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-                        <Input
-                          className="col-span-6"
-                          value={it.item_name}
-                          onChange={(e) => updateItem(idx, { item_name: e.target.value })}
-                          placeholder="Nom de l'article"
-                        />
-                        <Input
-                          className="col-span-2"
-                          type="number"
-                          min={1}
-                          value={it.quantity}
-                          onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })}
-                        />
-                        <Input
-                          className="col-span-3"
-                          type="number"
-                          min={0}
-                          value={it.estimated_price}
-                          onChange={(e) => updateItem(idx, { estimated_price: Number(e.target.value) })}
-                          placeholder="Prix"
-                        />
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="col-span-1"
-                          onClick={() => removeItem(idx)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <div key={idx} className="space-y-1 rounded-md border p-2">
+                        <div className="grid grid-cols-12 gap-2 items-center">
+                          <Input
+                            className="col-span-6"
+                            value={it.item_name}
+                            onChange={(e) => updateItem(idx, { item_name: e.target.value })}
+                            placeholder="Nom de l'article"
+                          />
+                          <Input
+                            className="col-span-2"
+                            type="number"
+                            min={1}
+                            value={it.quantity}
+                            onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })}
+                          />
+                          <Input
+                            className="col-span-3"
+                            type="number"
+                            min={0}
+                            value={it.estimated_price}
+                            onChange={(e) => updateItem(idx, { estimated_price: Number(e.target.value) })}
+                            placeholder="Prix"
+                          />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="col-span-1"
+                            onClick={() => removeItem(idx)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <label className="flex items-center gap-2 text-xs text-muted-foreground pl-1">
+                          <Switch
+                            checked={it.is_optional}
+                            onCheckedChange={(v) => updateItem(idx, { is_optional: v })}
+                          />
+                          Article optionnel (non inclus par défaut dans le prix côté client)
+                        </label>
                       </div>
                     ))}
+
                   </div>
                 </div>
                 <div className="md:col-span-2 flex items-center justify-between p-3 rounded-lg bg-muted/40">
