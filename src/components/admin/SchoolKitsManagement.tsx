@@ -28,7 +28,7 @@ const CATEGORIES = [
   { value: "kit_complet_clad", label: "Kit Complet (Cahiers + Livres + Annales + Dictionnaires)" },
 ];
 
-type KitItem = { item_name: string; quantity: number; estimated_price: number };
+type KitItem = { item_name: string; quantity: number; estimated_price: number; is_optional: boolean };
 type Kit = {
   id: string;
   name: string;
@@ -59,6 +59,7 @@ const emptyForm = {
   is_active: true,
   items: [] as KitItem[],
 };
+
 
 const SchoolKitsManagement = () => {
   const [kits, setKits] = useState<Kit[]>([]);
