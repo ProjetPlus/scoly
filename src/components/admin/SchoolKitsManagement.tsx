@@ -209,8 +209,10 @@ const SchoolKitsManagement = () => {
             item_name: i.item_name,
             quantity: Number(i.quantity) || 1,
             estimated_price: Number(i.estimated_price) || 0,
+            is_optional: !!i.is_optional,
             sort_order: idx,
           }));
+
         if (rows.length > 0) {
           const { error } = await supabase.from("smart_kit_items").insert(rows);
           if (error) throw error;
