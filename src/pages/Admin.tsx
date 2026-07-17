@@ -205,16 +205,25 @@ const Admin = () => {
             {menuGroups.map((group, groupIndex) => {
               const isGroupOpen = openMenuGroups.includes(group.label);
               const panelId = `admin-menu-desktop-${groupIndex}`;
+              const openGroup = () =>
+                setOpenMenuGroups((prev) => (prev.includes(group.label) ? prev : [...prev, group.label]));
+              const closeGroup = () => {
+                if (group.label === activeGroup) return;
+                setOpenMenuGroups((prev) => prev.filter((l) => l !== group.label));
+              };
               return (
                 <div
                   key={group.label}
                   className="rounded-lg border border-border/60 bg-background/40"
+                  onMouseEnter={openGroup}
+                  onMouseLeave={closeGroup}
                 >
                   <button
                     type="button"
                     aria-expanded={isGroupOpen}
                     aria-controls={panelId}
                     onClick={() => toggleMenuGroup(group.label)}
+                    onFocus={openGroup}
                     className="w-full px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground"
                   >
                     {group.label}
@@ -242,6 +251,7 @@ const Admin = () => {
                 </div>
               );
             })}
+
           </nav>
         </aside>
 
