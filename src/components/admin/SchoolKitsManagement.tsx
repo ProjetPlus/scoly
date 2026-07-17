@@ -66,7 +66,40 @@ const SchoolKitsManagement = () => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({ ...emptyForm });
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const uploadCover = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Seules les images sont autorisées (JPG, PNG, WEBP).");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("L'image ne doit pas dépasser 5 Mo.");
+      return;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return toast.error("Non authentifié");
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/kits/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("product-images").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+      if (error) throw error;
+      const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+      setForm((f) => ({ ...f, image_url: data.publicUrl }));
+      toast.success("Image téléchargée.");
+    } catch (e: any) {
+      toast.error(e.message || "Échec de l'upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
 
   const load = async () => {
     setLoading(true);
