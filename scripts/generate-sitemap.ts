@@ -26,10 +26,8 @@ const today = new Date().toISOString().slice(0, 10);
 const staticRoutes: Entry[] = [
   { path: "/", changefreq: "daily", priority: "1.0" },
   { path: "/shop", changefreq: "daily", priority: "0.95" },
-  { path: "/kits", changefreq: "weekly", priority: "0.85" },
+  { path: "/kits-scolaires", changefreq: "weekly", priority: "0.85" },
   { path: "/actualites", changefreq: "daily", priority: "0.85" },
-  { path: "/ecoles", changefreq: "weekly", priority: "0.7" },
-  { path: "/ressources", changefreq: "weekly", priority: "0.7" },
   { path: "/parrainage", changefreq: "monthly", priority: "0.6" },
   { path: "/about", changefreq: "monthly", priority: "0.6" },
   { path: "/contact", changefreq: "monthly", priority: "0.6" },
@@ -131,7 +129,7 @@ function renderEntry(e: Entry) {
 function writeRobots() {
   const privateRoutes = [
     "/admin", "/account", "/compte", "/checkout", "/cart", "/panier", "/vendor", "/moderator",
-    "/delivery", "/author", "/team", "/bootstrap-admin", "/auth", "/unsubscribe",
+    "/delivery", "/author", "/team", "/me", "/bootstrap-admin", "/auth", "/unsubscribe",
   ];
   const lines = [
     "# Robots.txt - Scoly (https://scoly.ci)",
@@ -161,8 +159,8 @@ function writeLlms(categories: CategoryRow[], products: ProductRow[], articles: 
   const productLines = products.slice(0, 25).map((p) => `- [${p.name_fr || "Produit Scoly"}](/shop/product/${p.id})`);
   const articleLines = articles.slice(0, 20).map((a) => `- [${a.title_fr || "Article Scoly"}](/actualites/${a.id})`);
   const content = `# Scoly — Fournitures scolaires & bureautiques en Côte d'Ivoire\n\n` +
-    `> Scoly (scoly.ci) est la plateforme ivoirienne pour fournitures scolaires, manuels, articles de bureautique et kits intelligents. Livraison gratuite en Côte d'Ivoire et paiement Mobile Money sécurisé.\n\n` +
-    `## Pages principales\n- [Accueil](/)\n- [Boutique](/shop)\n- [Kits intelligents](/kits)\n- [Actualités](/actualites)\n- [Écoles partenaires](/ecoles)\n- [Livraison & retours](/livraison-retours)\n\n` +
+    `> Scoly (scoly.ci) est la plateforme ivoirienne pour fournitures scolaires, manuels, articles de bureautique et kits scolaires. Livraison gratuite en Côte d'Ivoire et paiement Mobile Money sécurisé.\n\n` +
+    `## Pages principales\n- [Accueil](/)\n- [Boutique](/shop)\n- [Kit Scolaire](/kits-scolaires)\n- [Actualités](/actualites)\n- [Livraison & retours](/livraison-retours)\n\n` +
     `## Catégories publiques\n${categoryLines.join("\n")}\n\n` +
     `## Produits récents\n${productLines.join("\n")}\n\n` +
     `## Articles récents\n${articleLines.join("\n")}\n\n` +
