@@ -118,10 +118,6 @@ const App = () => (
                       
                       <Route path="/faq" element={<FAQ />} />
                       <Route path="/article/pay/:id" element={<RoleGuard><ArticlePayment /></RoleGuard>} />
-                      <Route path="/bootstrap-admin" element={<Navigate to="/team" replace />} />
-                      <Route path="/delivery" element={<Navigate to="/team" replace />} />
-                      <Route path="/moderator" element={<Navigate to="/team" replace />} />
-                      <Route path="/vendor" element={<Navigate to="/team" replace />} />
                       <Route path="/wishlist" element={<RoleGuard><Wishlist /></RoleGuard>} />
                       <Route path="/mentions-legales" element={<MentionsLegales />} />
                       <Route path="/terms" element={<TermsOfUse />} />
@@ -129,7 +125,6 @@ const App = () => (
                       <Route path="/cookies" element={<CookiesPolicy />} />
                       <Route path="/auth/confirm" element={<AuthConfirm />} />
                       <Route path="/auth/reset-password" element={<ResetPassword />} />
-                      <Route path="/kits-ecole" element={<Navigate to="/kits-scolaires" replace />} />
                       <Route path="/kits-scolaires" element={<KitsEcole />} />
                       <Route path="/me" element={<PartnerAccess />} />
                       <Route path="/parrainage" element={<Referral />} />
