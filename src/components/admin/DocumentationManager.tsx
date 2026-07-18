@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Download, RefreshCw, FileText, Database, Shield, Users, Truck, CreditCard, Cpu, Globe, Settings, BookOpen, Headphones, Phone, Mail, ExternalLink, ImageIcon, ClipboardCheck, AlertTriangle, CheckCircle, Info, XCircle } from "lucide-react";
+import { Download, RefreshCw, FileText, Database, Shield, Users, Truck, CreditCard, Globe, Settings, BookOpen, Headphones, Phone, Mail, ExternalLink, ImageIcon, ClipboardCheck, AlertTriangle, CheckCircle, Info, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -16,7 +16,6 @@ const sections = [
   { icon: Shield, title: "Sécurité & Auth", desc: "RLS, rôles, JWT, bonnes pratiques" },
   { icon: Truck, title: "Déploiement", desc: "Build, cPanel, .htaccess, maintenance" },
   { icon: Headphones, title: "Support", desc: "Contact développeur, hébergeur, ressources" },
-  { icon: Cpu, title: "Module IA", desc: "Analyse auto, promotions, publications sociales, images" },
   { icon: Globe, title: "Internationalisation", desc: "Multilingue FR, EN, DE, ES, traduction IA" },
 ];
 
