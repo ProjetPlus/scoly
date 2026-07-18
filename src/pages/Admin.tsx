@@ -245,13 +245,13 @@ const Admin = () => {
                 <div
                   key={group.label}
                   className="rounded-lg border border-border/60 bg-background/40"
-                  onPointerEnter={() => handleMenuGroupEnter(group.label)}
                 >
                   <button
                     type="button"
                     aria-expanded={isGroupOpen}
                     aria-controls={panelId}
                     onClick={() => toggleMenuGroup(group.label)}
+                    onPointerEnter={() => handleMenuGroupEnter(group.label)}
                     className="w-full px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground"
                   >
                     {group.label}
@@ -263,6 +263,7 @@ const Admin = () => {
                         <button
                           type="button"
                           key={item.id}
+                          onPointerEnter={() => handleMenuGroupEnter(group.label)}
                           onClick={() => handleTabChange(item.id as TabType)}
                           className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
                             activeTab === item.id
