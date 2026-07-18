@@ -105,7 +105,7 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openMenuGroup, setOpenMenuGroup] = useState<string | null>(null);
-  const [clickedMenuGroup, setClickedMenuGroup] = useState<string | null>(null);
+  const [pinnedMenuGroup, setPinnedMenuGroup] = useState<string | null>(null);
   const sidebarRef = useRef<HTMLElement | null>(null);
   const closeMenuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -184,7 +184,7 @@ const Admin = () => {
       if (sidebarRef.current?.contains(event.target as Node)) return;
       clearCloseMenuTimer();
       setOpenMenuGroup(null);
-      setClickedMenuGroup(null);
+      setPinnedMenuGroup(null);
     };
 
     document.addEventListener("pointerdown", handlePointerDown);
@@ -196,21 +196,25 @@ const Admin = () => {
 
   const toggleMenuGroup = (label: string) => {
     clearCloseMenuTimer();
-    setOpenMenuGroup((current) => (current === label && clickedMenuGroup === label ? null : label));
-    setClickedMenuGroup((current) => (current === label ? null : label));
+    setPinnedMenuGroup((current) => {
+      const next = current === label ? null : label;
+      setOpenMenuGroup(next);
+      return next;
+    });
   };
 
   const handleMenuGroupEnter = (label: string) => {
     clearCloseMenuTimer();
     setOpenMenuGroup(label);
+    setPinnedMenuGroup(null);
   };
 
-  const handleMenuGroupLeave = (label: string) => {
+  const handleSidebarLeave = () => {
     clearCloseMenuTimer();
-    if (clickedMenuGroup === label) return;
+    if (pinnedMenuGroup) return;
     closeMenuTimerRef.current = setTimeout(() => {
-      setOpenMenuGroup((current) => (current === label ? null : current));
-    }, 120);
+      setOpenMenuGroup(null);
+    }, 180);
   };
 
   const handleTabChange = (tab: TabType) => {
@@ -224,7 +228,11 @@ const Admin = () => {
 
 
         {/* Sidebar - Desktop */}
-        <aside ref={sidebarRef} className="w-64 shrink-0 bg-card border-r border-border hidden lg:block sticky top-0 h-screen overflow-y-auto overscroll-contain">
+        <aside
+          ref={sidebarRef}
+          onPointerLeave={handleSidebarLeave}
+          className="w-64 shrink-0 bg-card border-r border-border hidden lg:block sticky top-0 h-screen overflow-y-auto overscroll-contain"
+        >
           <div className="p-4 border-b border-border">
             <h2 className="text-lg font-display font-bold text-foreground">Administration</h2>
             <p className="text-xs text-muted-foreground">Menu interne</p>
@@ -238,7 +246,6 @@ const Admin = () => {
                   key={group.label}
                   className="rounded-lg border border-border/60 bg-background/40"
                   onPointerEnter={() => handleMenuGroupEnter(group.label)}
-                  onPointerLeave={() => handleMenuGroupLeave(group.label)}
                 >
                   <button
                     type="button"
