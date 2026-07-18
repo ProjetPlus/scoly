@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -35,10 +35,6 @@ const TeamDashboard = lazy(() => import("./pages/TeamDashboard"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const ArticlePayment = lazy(() => import("./pages/ArticlePayment"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const BootstrapAdmin = lazy(() => import("./pages/BootstrapAdmin"));
-const ModeratorDashboard = lazy(() => import("./pages/ModeratorDashboard"));
-const VendorDashboard = lazy(() => import("./pages/VendorDashboard"));
-const DeliveryDashboard = lazy(() => import("./pages/DeliveryDashboard"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
 const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
@@ -98,19 +94,19 @@ const App = () => (
                       <Route path="/contact" element={<Contact />} />
                       <Route path="/account" element={<RoleGuard><Account /></RoleGuard>} />
                       <Route path="/compte" element={<RoleGuard><Account /></RoleGuard>} />
-                      <Route path="/admin" element={<RoleGuard allow={["admin"]}><Admin /></RoleGuard>} />
+                      <Route path="/admin" element={<RoleGuard allow={["admin"]} loginRedirect="/team"><Admin /></RoleGuard>} />
                       <Route path="/actualites" element={<Actualites />} />
                       <Route path="/actualites/write" element={<RoleGuard allow={["admin","moderator","user"]}><WriteArticle /></RoleGuard>} />
                       <Route path="/actualites/edit/:id" element={<RoleGuard allow={["admin","moderator","user"]}><WriteArticle /></RoleGuard>} />
                       <Route path="/actualites/:id" element={<ArticleDetail />} />
-                      <Route path="/team" element={<RoleGuard allow={["admin","moderator"]}><TeamDashboard /></RoleGuard>} />
+                      <Route path="/team" element={<RoleGuard allow={["admin","moderator","vendor","delivery"]} loginRedirect="/team"><TeamDashboard /></RoleGuard>} />
                       
                       <Route path="/faq" element={<FAQ />} />
                       <Route path="/article/pay/:id" element={<RoleGuard><ArticlePayment /></RoleGuard>} />
-                      <Route path="/bootstrap-admin" element={<BootstrapAdmin />} />
-                      <Route path="/delivery" element={<RoleGuard allow={["delivery","admin"]}><DeliveryDashboard /></RoleGuard>} />
-                      <Route path="/moderator" element={<RoleGuard allow={["moderator","admin"]}><ModeratorDashboard /></RoleGuard>} />
-                      <Route path="/vendor" element={<RoleGuard allow={["vendor","admin"]}><VendorDashboard /></RoleGuard>} />
+                      <Route path="/bootstrap-admin" element={<Navigate to="/team" replace />} />
+                      <Route path="/delivery" element={<Navigate to="/team" replace />} />
+                      <Route path="/moderator" element={<Navigate to="/team" replace />} />
+                      <Route path="/vendor" element={<Navigate to="/team" replace />} />
                       <Route path="/wishlist" element={<RoleGuard><Wishlist /></RoleGuard>} />
                       <Route path="/mentions-legales" element={<MentionsLegales />} />
                       <Route path="/terms" element={<TermsOfUse />} />
@@ -118,9 +114,9 @@ const App = () => (
                       <Route path="/cookies" element={<CookiesPolicy />} />
                       <Route path="/auth/confirm" element={<AuthConfirm />} />
                       <Route path="/auth/reset-password" element={<ResetPassword />} />
-                      <Route path="/kits-ecole" element={<KitsEcole />} />
+                      <Route path="/kits-ecole" element={<Navigate to="/kits-scolaires" replace />} />
                       <Route path="/kits-scolaires" element={<KitsEcole />} />
-                      <Route path="/me" element={<RoleGuard><Account /></RoleGuard>} />
+                      <Route path="/me" element={<RoleGuard allow={["vendor"]} loginRedirect="/me"><Account /></RoleGuard>} />
                       <Route path="/parrainage" element={<Referral />} />
                       <Route path="/livraison-retours" element={<DeliveryReturns />} />
                       <Route path="/livraison" element={<DeliveryReturns />} />
