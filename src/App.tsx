@@ -13,6 +13,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import PageLoader from "@/components/PageLoader";
 import { SessionSecurityProvider } from "@/components/SessionSecurityProvider";
 import RoleGuard from "@/components/RoleGuard";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Critical path - eager load
 import Index from "./pages/Index";
@@ -46,6 +47,20 @@ const KitsEcole = lazy(() => import("./pages/KitsEcole"));
 const Referral = lazy(() => import("./pages/Referral"));
 const DeliveryReturns = lazy(() => import("./pages/DeliveryReturns"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+
+const TeamAccess = () => {
+  const { user, loading, rolesLoading, roles } = useAuth();
+  if (loading || (user && rolesLoading)) return <PageLoader />;
+  if (!user) return <Auth />;
+  return roles.some((r) => ["admin", "moderator", "vendor", "delivery"].includes(r)) ? <TeamDashboard /> : <Navigate to="/auth" replace />;
+};
+
+const PartnerAccess = () => {
+  const { user, loading, rolesLoading, roles } = useAuth();
+  if (loading || (user && rolesLoading)) return <PageLoader />;
+  if (!user) return <Auth />;
+  return roles.some((r) => ["vendor", "referent", "association", "school", "school_admin"].includes(r)) ? <Account /> : <Navigate to="/account" replace />;
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -99,7 +114,7 @@ const App = () => (
                       <Route path="/actualites/write" element={<RoleGuard allow={["admin","moderator","user"]}><WriteArticle /></RoleGuard>} />
                       <Route path="/actualites/edit/:id" element={<RoleGuard allow={["admin","moderator","user"]}><WriteArticle /></RoleGuard>} />
                       <Route path="/actualites/:id" element={<ArticleDetail />} />
-                      <Route path="/team" element={<RoleGuard allow={["admin","moderator","vendor","delivery"]} loginRedirect="/team"><TeamDashboard /></RoleGuard>} />
+                      <Route path="/team" element={<TeamAccess />} />
                       
                       <Route path="/faq" element={<FAQ />} />
                       <Route path="/article/pay/:id" element={<RoleGuard><ArticlePayment /></RoleGuard>} />
@@ -116,7 +131,7 @@ const App = () => (
                       <Route path="/auth/reset-password" element={<ResetPassword />} />
                       <Route path="/kits-ecole" element={<Navigate to="/kits-scolaires" replace />} />
                       <Route path="/kits-scolaires" element={<KitsEcole />} />
-                      <Route path="/me" element={<RoleGuard allow={["vendor"]} loginRedirect="/me"><Account /></RoleGuard>} />
+                      <Route path="/me" element={<PartnerAccess />} />
                       <Route path="/parrainage" element={<Referral />} />
                       <Route path="/livraison-retours" element={<DeliveryReturns />} />
                       <Route path="/livraison" element={<DeliveryReturns />} />
