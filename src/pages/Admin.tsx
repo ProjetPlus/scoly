@@ -205,8 +205,8 @@ const Admin = () => {
 
   const handleMenuGroupEnter = (label: string) => {
     clearCloseMenuTimer();
+    if (pinnedMenuGroup) return;
     setOpenMenuGroup(label);
-    setPinnedMenuGroup(null);
   };
 
   const handleSidebarLeave = () => {
