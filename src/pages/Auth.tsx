@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User, AtSign, AlertTriangle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ const Auth = () => {
   const { signIn, signUp, user } = useAuth();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   
   // Rate limiting for login/signup
   const loginRateLimit = useRateLimit('auth_login', { maxAttempts: 5, windowSeconds: 300, blockSeconds: 900 });
@@ -47,17 +48,12 @@ const Auth = () => {
       .eq('user_id', u.id);
 
     const roleList = (roles || []).map((r) => r.role);
-    const path = roleList.includes('admin')
-      ? '/admin'
-      : roleList.includes('moderator')
-        ? '/moderator'
-        : roleList.includes('vendor')
-          ? '/vendor'
-          : roleList.includes('delivery')
-            ? '/delivery'
-            : '/account';
+    const isTeam = roleList.some((role) => ['admin', 'moderator', 'vendor', 'delivery'].includes(role));
+    const isPartner = roleList.some((role) => ['referent', 'association', 'school', 'school_admin'].includes(role));
 
-    navigate(path);
+    if (pathname === '/team') navigate(isTeam ? '/team' : '/auth', { replace: true });
+    else if (pathname === '/me') navigate(isPartner || roleList.includes('vendor') ? '/me' : '/account', { replace: true });
+    else navigate('/account', { replace: true });
   };
 
   useEffect(() => {
