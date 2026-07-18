@@ -1,5 +1,5 @@
 // Service Worker for PWA Web Push Notifications
-const CACHE_NAME = 'scoly-v5';
+const CACHE_NAME = 'scoly-v6-clean';
 
 // Install event
 self.addEventListener('install', (event) => {
@@ -10,7 +10,11 @@ self.addEventListener('install', (event) => {
 // Activate event
 self.addEventListener('activate', (event) => {
   console.log('[Service Worker] Activating...');
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then(() => clients.claim())
+  );
 });
 
 // Push event - receive push notifications

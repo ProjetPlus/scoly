@@ -8,7 +8,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   rolesLoading: boolean;
-  roles: Array<'admin' | 'moderator' | 'user' | 'vendor' | 'delivery'>;
+  roles: string[];
   isAdmin: boolean;
   refreshRoles: () => Promise<void>;
   getDashboardPath: () => string;
@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [rolesLoading, setRolesLoading] = useState(true);
-  const [roles, setRoles] = useState<Array<'admin' | 'moderator' | 'user' | 'vendor' | 'delivery'>>([]);
+  const [roles, setRoles] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
 
@@ -74,10 +74,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const getDashboardPath = () => {
-    if (roles.includes('admin')) return '/admin';
-    if (roles.includes('moderator')) return '/moderator';
-    if (roles.includes('vendor')) return '/vendor';
-    if (roles.includes('delivery')) return '/delivery';
+    if (roles.some((role) => ['admin', 'moderator', 'vendor', 'delivery'].includes(role))) return '/team';
+    if (roles.some((role) => ['referent', 'association', 'school', 'school_admin'].includes(role))) return '/me';
     return '/account';
   };
 

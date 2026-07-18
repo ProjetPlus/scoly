@@ -63,11 +63,11 @@ const HeroSection = () => {
                   Acheter maintenant <ArrowRight size={14} />
                 </span>
                 <Link
-                  to="/kits-ecole"
+                  to="/kits-scolaires"
                   onClick={(e) => e.stopPropagation()}
                   className="inline-flex items-center gap-1.5 bg-primary-foreground/10 hover:bg-primary-foreground/20 backdrop-blur-md text-primary-foreground border border-primary-foreground/30 px-3.5 py-2 rounded-md font-medium text-xs sm:text-sm"
                 >
-                  Kits École
+                  Kit Scolaire
                 </Link>
               </div>
             </div>

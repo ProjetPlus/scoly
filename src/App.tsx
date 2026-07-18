@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -13,6 +13,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import PageLoader from "@/components/PageLoader";
 import { SessionSecurityProvider } from "@/components/SessionSecurityProvider";
 import RoleGuard from "@/components/RoleGuard";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Critical path - eager load
 import Index from "./pages/Index";
@@ -35,10 +36,6 @@ const TeamDashboard = lazy(() => import("./pages/TeamDashboard"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const ArticlePayment = lazy(() => import("./pages/ArticlePayment"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const BootstrapAdmin = lazy(() => import("./pages/BootstrapAdmin"));
-const ModeratorDashboard = lazy(() => import("./pages/ModeratorDashboard"));
-const VendorDashboard = lazy(() => import("./pages/VendorDashboard"));
-const DeliveryDashboard = lazy(() => import("./pages/DeliveryDashboard"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 const MentionsLegales = lazy(() => import("./pages/MentionsLegales"));
 const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
@@ -50,6 +47,20 @@ const KitsEcole = lazy(() => import("./pages/KitsEcole"));
 const Referral = lazy(() => import("./pages/Referral"));
 const DeliveryReturns = lazy(() => import("./pages/DeliveryReturns"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+
+const TeamAccess = () => {
+  const { user, loading, rolesLoading, roles } = useAuth();
+  if (loading || (user && rolesLoading)) return <PageLoader />;
+  if (!user) return <Auth />;
+  return roles.some((r) => ["admin", "moderator", "vendor", "delivery"].includes(r)) ? <TeamDashboard /> : <Navigate to="/auth" replace />;
+};
+
+const PartnerAccess = () => {
+  const { user, loading, rolesLoading, roles } = useAuth();
+  if (loading || (user && rolesLoading)) return <PageLoader />;
+  if (!user) return <Auth />;
+  return roles.some((r) => ["vendor", "referent", "association", "school", "school_admin"].includes(r)) ? <Account /> : <Navigate to="/account" replace />;
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -98,19 +109,15 @@ const App = () => (
                       <Route path="/contact" element={<Contact />} />
                       <Route path="/account" element={<RoleGuard><Account /></RoleGuard>} />
                       <Route path="/compte" element={<RoleGuard><Account /></RoleGuard>} />
-                      <Route path="/admin" element={<RoleGuard allow={["admin"]}><Admin /></RoleGuard>} />
+                      <Route path="/admin" element={<RoleGuard allow={["admin"]} loginRedirect="/team"><Admin /></RoleGuard>} />
                       <Route path="/actualites" element={<Actualites />} />
                       <Route path="/actualites/write" element={<RoleGuard allow={["admin","moderator","user"]}><WriteArticle /></RoleGuard>} />
                       <Route path="/actualites/edit/:id" element={<RoleGuard allow={["admin","moderator","user"]}><WriteArticle /></RoleGuard>} />
                       <Route path="/actualites/:id" element={<ArticleDetail />} />
-                      <Route path="/team" element={<RoleGuard allow={["admin","moderator"]}><TeamDashboard /></RoleGuard>} />
+                      <Route path="/team" element={<TeamAccess />} />
                       
                       <Route path="/faq" element={<FAQ />} />
                       <Route path="/article/pay/:id" element={<RoleGuard><ArticlePayment /></RoleGuard>} />
-                      <Route path="/bootstrap-admin" element={<BootstrapAdmin />} />
-                      <Route path="/delivery" element={<RoleGuard allow={["delivery","admin"]}><DeliveryDashboard /></RoleGuard>} />
-                      <Route path="/moderator" element={<RoleGuard allow={["moderator","admin"]}><ModeratorDashboard /></RoleGuard>} />
-                      <Route path="/vendor" element={<RoleGuard allow={["vendor","admin"]}><VendorDashboard /></RoleGuard>} />
                       <Route path="/wishlist" element={<RoleGuard><Wishlist /></RoleGuard>} />
                       <Route path="/mentions-legales" element={<MentionsLegales />} />
                       <Route path="/terms" element={<TermsOfUse />} />
@@ -118,9 +125,8 @@ const App = () => (
                       <Route path="/cookies" element={<CookiesPolicy />} />
                       <Route path="/auth/confirm" element={<AuthConfirm />} />
                       <Route path="/auth/reset-password" element={<ResetPassword />} />
-                      <Route path="/kits-ecole" element={<KitsEcole />} />
                       <Route path="/kits-scolaires" element={<KitsEcole />} />
-                      <Route path="/me" element={<RoleGuard><Account /></RoleGuard>} />
+                      <Route path="/me" element={<PartnerAccess />} />
                       <Route path="/parrainage" element={<Referral />} />
                       <Route path="/livraison-retours" element={<DeliveryReturns />} />
                       <Route path="/livraison" element={<DeliveryReturns />} />

@@ -8,11 +8,11 @@ const NewFeaturesSection = () => {
   const features = [
     {
       icon: <Package size={28} />,
-      title: language === 'en' ? 'School Kits' : 'Kits École',
+      title: language === 'en' ? 'School Kit' : 'Kit Scolaire',
       description: language === 'en'
         ? 'Ready-made school kits by grade level, delivered to your door.'
         : 'Kits scolaires prêts par niveau, livrés chez vous.',
-      href: '/kits-ecole',
+      href: '/kits-scolaires',
       color: 'from-emerald-500/20 to-emerald-600/10',
       iconBg: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
     },
