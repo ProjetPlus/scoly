@@ -231,7 +231,7 @@ const Admin = () => {
         <aside
           ref={sidebarRef}
           onPointerLeave={handleSidebarLeave}
-          className="w-64 shrink-0 bg-card border-r border-border hidden lg:block sticky top-0 h-screen overflow-y-auto overscroll-contain"
+          className="w-64 shrink-0 bg-card border-r border-border hidden lg:block sticky top-0 h-screen overflow-visible"
         >
           <div className="p-4 border-b border-border">
             <h2 className="text-lg font-display font-bold text-foreground">Administration</h2>
@@ -244,7 +244,7 @@ const Admin = () => {
               return (
                 <div
                   key={group.label}
-                  className="rounded-lg border border-border/60 bg-background/40"
+                  className="relative rounded-lg border border-border/60 bg-background/40"
                 >
                   <button
                     type="button"
@@ -258,7 +258,10 @@ const Admin = () => {
                     <ChevronRight size={13} className={`transition-transform ${isGroupOpen ? "rotate-90" : ""}`} />
                   </button>
                   {isGroupOpen && (
-                    <div id={panelId} className="space-y-1 px-2 pb-2 pt-1">
+                    <div
+                      id={panelId}
+                      className="absolute left-[calc(100%+0.5rem)] top-0 z-50 w-64 space-y-1 rounded-lg border border-border bg-card p-2 shadow-xl"
+                    >
                       {group.items.map((item) => (
                         <button
                           type="button"
