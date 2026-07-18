@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -76,7 +76,6 @@ type TabType =
   | "orders"
   | "users"
   | "articles"
-  | "authors"
   | "review"
   | "promotions"
   | "promotions_mgmt"
@@ -107,7 +106,10 @@ const Admin = () => {
   useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [openMenuGroups, setOpenMenuGroups] = useState<string[]>(["Vue d'ensemble", "Catalogue & Ventes", "Contenu"]);
+  const [openMenuGroup, setOpenMenuGroup] = useState<string | null>(null);
+  const [clickedMenuGroup, setClickedMenuGroup] = useState<string | null>(null);
+  const sidebarRef = useRef<HTMLElement | null>(null);
+  const closeMenuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const menuGroups: Array<{ label: string; items: Array<{ id: string; label: string; icon: any }> }> = [
     {
@@ -172,17 +174,45 @@ const Admin = () => {
     },
   ];
   const menuItems = menuGroups.flatMap((g) => g.items);
-  const activeGroup = menuGroups.find((group) => group.items.some((item) => item.id === activeTab))?.label;
+  const clearCloseMenuTimer = () => {
+    if (closeMenuTimerRef.current) {
+      clearTimeout(closeMenuTimerRef.current);
+      closeMenuTimerRef.current = null;
+    }
+  };
 
   useEffect(() => {
-    if (!activeGroup) return;
-    setOpenMenuGroups((prev) => (prev.includes(activeGroup) ? prev : [...prev, activeGroup]));
-  }, [activeGroup]);
+    const handlePointerDown = (event: PointerEvent) => {
+      if (sidebarRef.current?.contains(event.target as Node)) return;
+      clearCloseMenuTimer();
+      setOpenMenuGroup(null);
+      setClickedMenuGroup(null);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      clearCloseMenuTimer();
+    };
+  }, []);
 
   const toggleMenuGroup = (label: string) => {
-    setOpenMenuGroups((prev) =>
-      prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
-    );
+    clearCloseMenuTimer();
+    setOpenMenuGroup((current) => (current === label && clickedMenuGroup === label ? null : label));
+    setClickedMenuGroup((current) => (current === label ? null : label));
+  };
+
+  const handleMenuGroupEnter = (label: string) => {
+    clearCloseMenuTimer();
+    setOpenMenuGroup(label);
+  };
+
+  const handleMenuGroupLeave = (label: string) => {
+    clearCloseMenuTimer();
+    if (clickedMenuGroup === label) return;
+    closeMenuTimerRef.current = setTimeout(() => {
+      setOpenMenuGroup((current) => (current === label ? null : current));
+    }, 120);
   };
 
   const handleTabChange = (tab: TabType) => {
@@ -196,19 +226,21 @@ const Admin = () => {
 
 
         {/* Sidebar - Desktop */}
-        <aside className="w-64 shrink-0 bg-card border-r border-border hidden lg:block sticky top-0 h-screen overflow-y-auto overscroll-contain">
+        <aside ref={sidebarRef} className="w-64 shrink-0 bg-card border-r border-border hidden lg:block sticky top-0 h-screen overflow-y-auto overscroll-contain">
           <div className="p-4 border-b border-border">
             <h2 className="text-lg font-display font-bold text-foreground">Administration</h2>
             <p className="text-xs text-muted-foreground">Menu interne</p>
           </div>
           <nav className="px-3 py-4 space-y-2">
             {menuGroups.map((group, groupIndex) => {
-              const isGroupOpen = openMenuGroups.includes(group.label);
+              const isGroupOpen = openMenuGroup === group.label;
               const panelId = `admin-menu-desktop-${groupIndex}`;
               return (
                 <div
                   key={group.label}
                   className="rounded-lg border border-border/60 bg-background/40"
+                  onPointerEnter={() => handleMenuGroupEnter(group.label)}
+                  onPointerLeave={() => handleMenuGroupLeave(group.label)}
                 >
                   <button
                     type="button"
@@ -255,7 +287,7 @@ const Admin = () => {
             </SheetHeader>
             <nav className="p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-100px)]">
               {menuGroups.map((group, groupIndex) => {
-                const isGroupOpen = openMenuGroups.includes(group.label);
+                const isGroupOpen = openMenuGroup === group.label;
                 const panelId = `admin-menu-mobile-${groupIndex}`;
                 return (
                   <div
@@ -344,14 +376,12 @@ const Admin = () => {
           {activeTab === "promotions_mgmt" && <PromotionsManagement />}
           {activeTab === "flash_deals" && <FlashDealsManagement />}
           {activeTab === "social_media" && <SocialMediaManager />}
-          {/* authors tab removed */}
           {activeTab === "review" && <PublicationsReview />}
           {activeTab === "articles" && <ArticlesTab />}
           {activeTab === "promotions" && <CouponManagement />}
           {activeTab === "advertisements" && <AdvertisementsManagement />}
           {activeTab === "faq" && <FAQManagement />}
           {activeTab === "documentation" && <DocumentationManager />}
-          {/* schools tab removed */}
           {activeTab === "referrals" && <ReferralsAdminTab />}
           {activeTab === "settings" && <PlatformSettings />}
           {activeTab === "zones" && <ZonesManagement />}
