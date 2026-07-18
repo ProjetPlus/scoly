@@ -163,7 +163,7 @@ const DocumentationManager = () => {
       y = bullets(["Design system cohérent (tokens HSL sémantiques)","Playfair Display + DM Sans — typographie distinctive","Mode sombre complet","Animations Framer Motion","Lazy loading avec PageLoader élégant","Skip-to-content pour accessibilité WCAG","ARIA labels sur navigation et footer","Responsive mobile-first","Error Boundary avec page de recovery"], y, GREEN);
       y+=4; y=cp(y,20);
       doc.setFont("helvetica","bold"); doc.setTextColor(...GREEN); doc.text("✅ 18+ Fonctionnalités Clés", M, y); y+=6;
-      y = bullets(["E-commerce complet avec KkiaPay","Multi-vendeurs + commissions","Blog premium + éditeur riche IA","Livraison avec preuves (photo, GPS, CNI)","Notifications push & in-app temps réel","Fidélité avec points et récompenses","Module IA auto-gestion","Assistant chatbot ScIA","Coupons, promos, ventes flash","Messagerie interne","Recherche globale + wishlist + export Excel/PDF","PWA avec Service Worker"], y, GREEN);
+      y = bullets(["E-commerce complet avec KkiaPay","Multi-vendeurs + commissions","Blog premium avec éditeur riche","Livraison avec preuves (photo, GPS, CNI)","Notifications push & in-app temps réel","Fidélité avec points et récompenses","Automatisation de gestion","Support client","Coupons, promos, ventes flash","Messagerie interne","Recherche globale + wishlist + export Excel/PDF","PWA avec Service Worker"], y, GREEN);
 
       // PAGE 6: VERDICT
       pg.v++; y = np(pg.v);
@@ -267,7 +267,7 @@ const DocumentationManager = () => {
         { id: 6, title: "Guide Client", pages: "8" },
         { id: 7, title: "E-commerce Avancé", pages: "9" },
         { id: 8, title: "Système de Paiement KkiaPay", pages: "10" },
-        { id: 9, title: "Module IA", pages: "11" },
+        { id: 9, title: "Automatisation", pages: "11" },
         { id: 10, title: "Edge Functions & API", pages: "12" },
         { id: 11, title: "Sécurité & Authentification", pages: "13" },
         { id: 12, title: "Déploiement & Maintenance", pages: "14" },
@@ -492,10 +492,10 @@ const DocumentationManager = () => {
         "Paiement sécurisé Mobile Money (Orange, MTN, Moov, Wave) via KkiaPay",
         "Notifications en temps réel (push & in-app) pour le suivi de commande",
         "Support multilingue : Français, Anglais, Allemand, Espagnol",
-        "Module IA intelligent : analyse auto, gestion promotions, publications réseaux sociaux",
+        "Automatisation : analyse, gestion promotions, publications réseaux sociaux",
         "Wishlist, mini-panier latéral et programme de fidélité avec points",
-        "Assistant IA conversationnel (ScIA) pour l'aide aux utilisateurs",
-        "Blog et actualités éducatives avec éditeur riche IA (tableaux, médias, vidéos)",
+        "Support conversationnel pour l'aide aux utilisateurs",
+        "Blog et actualités éducatives avec éditeur riche (tableaux, médias, vidéos)",
         "Système d'avis clients et réactions sur articles",
       ], y, pg);
       y += 4;
@@ -539,7 +539,7 @@ const DocumentationManager = () => {
       y = bulletList([
         "KkiaPay — Passerelle de paiement Mobile Money & Cartes bancaires (Côte d'Ivoire)",
         "Email Transactionnel — Notifications de commande, confirmations, réinitialisations",
-        "IA Générative (Gemini/GPT) — Module IA pour auto-gestion, traduction, génération de contenu et images",
+        "Automatisation — gestion, traduction, génération de contenu et images",
       ], y, pg);
       y += 3;
       y = infoBox("Architecture Standalone : L'application est 100% autonome après build. Elle peut être déployée sur cPanel/Safaricloud, Vercel, ou tout hébergeur statique. Développée sur VSCode avec assistance IA par Inocent KOFFI.", y);
@@ -619,13 +619,13 @@ const DocumentationManager = () => {
       y = subTitle("Sections du Panel Admin", y);
       y = bulletList([
         "Tableau de bord — Vue d'ensemble : produits, commandes, revenus, utilisateurs en temps réel",
-        "Module IA — IA auto-gestion : analyse plateforme, suggestions flash deals, publications sociales",
+        "Automatisation — analyse plateforme, suggestions flash deals, publications sociales",
         "Produits & Catégories — CRUD complet avec images multiples, traduction auto, gestion de stock",
         "Promotions & Coupons — Ventes flash avec compte à rebours, coupons à usage limité",
         "Utilisateurs & Rôles — Gestion des comptes, attribution de rôles, blocage de comptes",
         "Paiements & Commissions — Suivi des transactions, commissions vendeurs, export Excel",
         "Livraisons — Assignation livreurs, preuves de livraison avec photo et GPS",
-        "Articles & Actualités — Modération, éditeur riche avec IA, contenu premium",
+        "Articles & Actualités — Modération, éditeur riche, contenu premium",
         "Publicités — Gestion des bannières pub avec dates et priorités",
         "FAQ — Gestion bilingue des questions fréquentes",
         "Documentation — Génération PDF de la documentation officielle",
@@ -636,7 +636,7 @@ const DocumentationManager = () => {
       pg.v++; y = newPage(pg.v);
       y = sectionTitle("5. RÔLES & PERMISSIONS", y);
       [
-        { role: "Admin", perms: "Accès complet à toutes les fonctionnalités. Gestion utilisateurs, produits, commandes, paiements, paramètres. Module IA et réseaux sociaux." },
+        { role: "Admin", perms: "Accès complet à toutes les fonctionnalités. Gestion utilisateurs, produits, commandes, paiements, paramètres et réseaux sociaux." },
         { role: "Moderator", perms: "Modération des articles et commentaires. Validation des publications. Gestion du contenu éditorial." },
         { role: "Vendor", perms: "Gestion de sa propre boutique. Ajout/modification de produits. Suivi des ventes et commissions. Dashboard vendeur dédié." },
         { role: "Delivery", perms: "Réception des commandes assignées. Suivi et livraison avec preuve (photo, GPS, signature). Dashboard livreur." },
@@ -706,12 +706,12 @@ const DocumentationManager = () => {
       pg.v++; y = newPage(pg.v);
       y = sectionTitle("9. MODULE IA", y);
       y = subTitle("Fonctionnalités IA", y);
-      y = bulletList(["Analyse automatique de la plateforme : stock, ventes, tendances", "Suggestions intelligentes de ventes flash basées sur les données", "Détection automatique des alertes de stock bas", "Génération de publications pour les réseaux sociaux (Facebook, Instagram, Twitter, LinkedIn, WhatsApp)", "Assistant conversationnel ScIA pour l'aide aux utilisateurs", "Génération automatique de contenu d'articles avec l'IA", "Génération d'images réalistes en contexte africain/ivoirien", "Traduction automatique des produits en 4 langues"], y, pg);
+      y = bulletList(["Analyse automatique de la plateforme : stock, ventes, tendances", "Suggestions de ventes flash basées sur les données", "Détection automatique des alertes de stock bas", "Génération de publications pour les réseaux sociaux (Facebook, Instagram, Twitter, LinkedIn, WhatsApp)", "Support conversationnel pour l'aide aux utilisateurs", "Génération automatique de contenu d'articles", "Génération d'images réalistes en contexte africain/ivoirien", "Traduction automatique des produits en 4 langues"], y, pg);
       y += 4;
       y = subTitle("Éditeur d'Articles Assisté par IA", y);
       y = bodyText("L'éditeur d'articles intègre une intelligence artificielle contextuelle avancée capable d'analyser un texte libre (même un simple mot) et de générer automatiquement un article complet structuré : titre impactant, résumé accrocheur, contenu aéré avec sous-titres, tableaux, listes à puces. L'IA génère aussi des images réalistes en contexte ivoirien si demandé.", y);
       y += 4;
-      y = subTitle("Edge Function : ai-platform-manager", y);
+      y = subTitle("Edge Function : platform-manager", y);
       y = bodyText("Cette fonction Edge centralise toutes les opérations IA de la plateforme :", y);
       y += 3;
       y = bulletList(["analyze — Analyse complète : produits, stocks, ventes, recommandations IA", "apply_flash_deals — Application automatique des ventes flash suggérées", "generate_social_post — Génération de posts optimisés par plateforme sociale"], y, pg);
@@ -727,7 +727,7 @@ const DocumentationManager = () => {
         ["kkiapay-webhook", "Reçoit les webhooks KkiaPay"],
         ["send-order-email", "Envoie les emails transactionnels de commande"],
         ["send-push-notification", "Envoie des notifications push"],
-        ["ai-platform-manager", "Module IA : analyse, flash deals, publications"],
+        ["platform-manager", "Automatisation : analyse, flash deals, publications"],
         ["generate-article", "Génération IA de contenu et images d'articles"],
         ["generate-ad-cta", "Génération IA de call-to-action publicitaires"],
         ["translate-product", "Traduction automatique des produits (4 langues)"],
@@ -965,7 +965,7 @@ const DocumentationManager = () => {
               ["Paiement", "KkiaPay"],
               ["Langues", "FR, EN, DE, ES"],
               ["IDE", "Visual Studio Code"],
-              ["Assistance", "IA Générative"],
+              ["Assistance", "Automatisation"],
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between gap-2">
                 <span className="text-muted-foreground">{k}</span>

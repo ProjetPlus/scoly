@@ -104,7 +104,7 @@ export function generateAuditPDF() {
     ["Sécurité RLS", "Politiques sur toutes les tables, anti-bruteforce", "9/10"],
     ["Authentification", "Multi-méthodes, sessions sécurisées, CAPTCHA", "9/10"],
     ["E-commerce", "Panier, checkout, Mobile Money, fidélité", "10/10"],
-    ["Module IA", "Analyse auto, génération contenu, publications", "9/10"],
+    ["Automatisation", "Analyse, génération contenu, publications", "9/10"],
     ["Multilingue", "4 langues (FR, EN, DE, ES)", "8/10"],
     ["Performance", "50+ index, lazy loading, PWA", "9/10"],
     ["Responsive", "Mobile-first, breakpoints adaptés", "9/10"],
@@ -151,7 +151,7 @@ export function generateAuditPDF() {
     "Frontend : React 18 + TypeScript + Vite + Tailwind CSS + Shadcn/ui",
     "Backend : Supabase (PostgreSQL + RLS + Edge Functions + Realtime + Storage)",
     "Paiement : KkiaPay (Orange Money, MTN MoMo, Moov Money, Wave)",
-    "IA : Lovable AI Gateway (Google Gemini) — analyse, génération, traduction",
+    "Automatisation de contenu — analyse, génération, traduction",
     "Déploiement : Vercel + PWA avec Service Worker",
     "15+ Edge Functions serverless (Deno) déployées automatiquement",
     "30+ tables avec Row Level Security sur l'ensemble du schéma",
@@ -238,7 +238,7 @@ export function generateScoringPDF() {
     { name: "Sécurité (RLS)", weight: "10%", score: "9/10", comment: "RLS exhaustive, anti-bruteforce" },
     { name: "Authentification", weight: "8%", score: "9/10", comment: "Multi-méthodes, sessions" },
     { name: "E-commerce", weight: "10%", score: "10/10", comment: "Flux complet, Mobile Money" },
-    { name: "Module IA", weight: "8%", score: "9/10", comment: "Analyse, génération, traduction" },
+    { name: "Automatisation", weight: "8%", score: "9/10", comment: "Analyse, génération, traduction" },
     { name: "Internationalisation", weight: "5%", score: "8/10", comment: "4 langues supportées" },
     { name: "Performance", weight: "8%", score: "9/10", comment: "50+ index, lazy loading" },
     { name: "Responsive / Mobile", weight: "5%", score: "9/10", comment: "Mobile-first design" },
@@ -426,7 +426,7 @@ export function generateRoadmapPDF() {
   doc.setTextColor(...COLORS.dark);
   doc.setFontSize(9);
   const vision = doc.splitTextToSize(
-    "Faire de Scoly la plateforme de référence pour l'éducation numérique en Côte d'Ivoire et en Afrique de l'Ouest, en combinant e-commerce de fournitures scolaires, gestion des établissements et ressources pédagogiques, le tout alimenté par l'intelligence artificielle.",
+    "Faire de Scoly la plateforme de référence pour l'éducation numérique en Côte d'Ivoire et en Afrique de l'Ouest, en combinant e-commerce de fournitures scolaires, gestion des établissements et ressources pédagogiques.",
     170
   );
   doc.text(vision, 19, y);
@@ -434,7 +434,7 @@ export function generateRoadmapPDF() {
 
   // Q1
   y = sectionTitle(doc, y, "T1 2026 — FONDATION (✅ TERMINÉ)");
-  ["Architecture React + Supabase", "Catalogue multilingue (4 langues)", "Paiement Mobile Money (KkiaPay)", "Système d'authentification complet", "Module IA (analyse, génération, traduction)", "15+ Edge Functions", "Score audit : 95/100"].forEach(f => {
+  ["Architecture React + Supabase", "Catalogue multilingue (4 langues)", "Paiement Mobile Money (KkiaPay)", "Système d'authentification complet", "Automatisation de contenu", "15+ Edge Functions", "Score audit : 95/100"].forEach(f => {
     y = checkPage(doc, y, 8); y = bulletPoint(doc, y, f);
   });
   y += 5;

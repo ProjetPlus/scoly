@@ -1,13 +1,12 @@
 # Scoly — Fournitures scolaires & bureautiques en Côte d'Ivoire
 
-> Scoly (scoly.ci) est la plateforme ivoirienne pour fournitures scolaires, manuels, articles de bureautique et kits intelligents. Livraison gratuite en Côte d'Ivoire et paiement Mobile Money sécurisé.
+> Scoly (scoly.ci) est la plateforme ivoirienne pour fournitures scolaires, manuels, articles de bureautique et Kit Scolaire. Livraison gratuite en Côte d'Ivoire et paiement Mobile Money sécurisé.
 
 ## Pages principales
 - [Accueil](/)
 - [Boutique](/shop)
-- [Kits intelligents](/kits)
+- [Kit Scolaire](/kits-scolaires)
 - [Actualités](/actualites)
-- [Écoles partenaires](/ecoles)
 - [Livraison & retours](/livraison-retours)
 
 ## Catégories publiques

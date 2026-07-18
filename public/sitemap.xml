@@ -21,14 +21,14 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://scoly.ci/shop" />
   </url>
   <url>
-    <loc>https://scoly.ci/kits</loc>
+    <loc>https://scoly.ci/kits-scolaires</loc>
     <lastmod>2026-07-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
-    <xhtml:link rel="alternate" hreflang="fr-CI" href="https://scoly.ci/kits" />
-    <xhtml:link rel="alternate" hreflang="fr" href="https://scoly.ci/kits" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://scoly.ci/kits" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://scoly.ci/kits" />
+    <xhtml:link rel="alternate" hreflang="fr-CI" href="https://scoly.ci/kits-scolaires" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://scoly.ci/kits-scolaires" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://scoly.ci/kits-scolaires" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://scoly.ci/kits-scolaires" />
   </url>
   <url>
     <loc>https://scoly.ci/actualites</loc>
@@ -39,26 +39,6 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://scoly.ci/actualites" />
     <xhtml:link rel="alternate" hreflang="en" href="https://scoly.ci/actualites" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://scoly.ci/actualites" />
-  </url>
-  <url>
-    <loc>https://scoly.ci/ecoles</loc>
-    <lastmod>2026-07-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="fr-CI" href="https://scoly.ci/ecoles" />
-    <xhtml:link rel="alternate" hreflang="fr" href="https://scoly.ci/ecoles" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://scoly.ci/ecoles" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://scoly.ci/ecoles" />
-  </url>
-  <url>
-    <loc>https://scoly.ci/ressources</loc>
-    <lastmod>2026-07-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="fr-CI" href="https://scoly.ci/ressources" />
-    <xhtml:link rel="alternate" hreflang="fr" href="https://scoly.ci/ressources" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://scoly.ci/ressources" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://scoly.ci/ressources" />
   </url>
   <url>
     <loc>https://scoly.ci/parrainage</loc>

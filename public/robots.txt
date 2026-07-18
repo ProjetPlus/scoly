@@ -7,12 +7,8 @@ Disallow: /compte
 Disallow: /checkout
 Disallow: /cart
 Disallow: /panier
-Disallow: /vendor
-Disallow: /moderator
-Disallow: /delivery
-Disallow: /author
 Disallow: /team
-Disallow: /bootstrap-admin
+Disallow: /me
 Disallow: /auth
 Disallow: /unsubscribe
 
