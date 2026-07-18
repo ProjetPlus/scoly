@@ -15,7 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCart } from "@/contexts/CartContext";
 import Logo from "./Logo";
 import LanguageSwitcher from "./LanguageSwitcher";
 import NotificationBell from "./NotificationBell";
@@ -31,7 +30,7 @@ const Navbar = () => {
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const isDashboard = /^\/(admin|vendor|delivery|moderator|team|account|compte|wishlist)(\/|$)/.test(pathname);
+  const isDashboard = /^\/(admin|vendor|delivery|moderator|team|me|account|compte|wishlist)(\/|$)/.test(pathname);
 
   const categories = [
     { label: "Maternelle", href: "/shop?category=scoly-maternelle" },
