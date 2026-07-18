@@ -3037,6 +3037,15 @@ export type Database = {
           total_users: number
         }[]
       }
+      get_article_content: {
+        Args: { _article_id: string }
+        Returns: {
+          content_de: string
+          content_en: string
+          content_es: string
+          content_fr: string
+        }[]
+      }
       get_campaign_analytics: {
         Args: never
         Returns: {
@@ -3160,6 +3169,7 @@ export type Database = {
           total_withdrawn: number
         }[]
       }
+      get_resource_file_url: { Args: { _resource_id: string }; Returns: string }
       get_school_contact: {
         Args: { _school_id: string }
         Returns: {

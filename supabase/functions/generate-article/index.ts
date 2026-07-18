@@ -28,6 +28,19 @@ serve(async (req) => {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // Require admin or moderator role
+    const userId = claimsData.claims.sub;
+    const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: roleRows } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["admin", "moderator"]);
+    if (!roleRows || roleRows.length === 0) {
+      return new Response(JSON.stringify({ error: "Forbidden: staff role required" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { content, generationMode } = await req.json();
     // generationMode: "text_only" | "single_image" | "multi_image" | "video" | "image_video"

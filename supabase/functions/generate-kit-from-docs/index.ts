@@ -67,6 +67,18 @@ Deno.serve(async (req) => {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // Require staff role (admin/moderator/vendor)
+    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const { data: roleRows } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id)
+      .in("role", ["admin", "moderator", "vendor"]);
+    if (!roleRows || roleRows.length === 0) {
+      return new Response(JSON.stringify({ error: "Forbidden: staff role required" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { files, level, series } = await req.json();
     if (!Array.isArray(files) || files.length === 0) {
