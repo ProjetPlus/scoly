@@ -48,18 +48,34 @@ const Referral = lazy(() => import("./pages/Referral"));
 const DeliveryReturns = lazy(() => import("./pages/DeliveryReturns"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 
+const Forbidden = ({ title = "Accès refusé (403)" }: { title?: string }) => (
+  <main className="min-h-screen flex items-center justify-center bg-background p-6">
+    <div className="max-w-md text-center space-y-3">
+      <p className="text-6xl font-bold text-primary">403</p>
+      <h1 className="text-xl font-semibold">{title}</h1>
+      <p className="text-sm text-muted-foreground">
+        Vous n'avez pas les droits nécessaires pour accéder à cette section.
+      </p>
+    </div>
+  </main>
+);
+
 const TeamAccess = () => {
   const { user, loading, rolesLoading, roles } = useAuth();
   if (loading || (user && rolesLoading)) return <PageLoader />;
   if (!user) return <Auth />;
-  return roles.some((r) => ["admin", "moderator", "vendor", "delivery"].includes(r)) ? <TeamDashboard /> : <Navigate to="/auth" replace />;
+  return roles.some((r) => ["admin", "moderator", "vendor", "delivery"].includes(r))
+    ? <TeamDashboard />
+    : <Forbidden title="Espace équipe interne réservé" />;
 };
 
 const PartnerAccess = () => {
   const { user, loading, rolesLoading, roles } = useAuth();
   if (loading || (user && rolesLoading)) return <PageLoader />;
   if (!user) return <Auth />;
-  return roles.some((r) => ["vendor", "referent", "association", "school", "school_admin"].includes(r)) ? <Account /> : <Navigate to="/account" replace />;
+  return roles.some((r) => ["vendor", "referent", "association", "school", "school_admin"].includes(r))
+    ? <Account />
+    : <Forbidden title="Espace partenaire réservé" />;
 };
 
 const queryClient = new QueryClient({
