@@ -278,11 +278,23 @@ const SchoolKitsManagement = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Niveau scolaire *</Label>
-                  <Input
-                    value={form.grade_level}
-                    onChange={(e) => setForm({ ...form, grade_level: e.target.value })}
-                    placeholder="Ex : 6e, CE2, Terminale D…"
-                  />
+                  <Select value={form.grade_level} onValueChange={(v) => setForm({ ...form, grade_level: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choisir un niveau" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[
+                        "Petite Section","Moyenne Section","Grande Section",
+                        "CP1","CP2","CE1","CE2","CM1","CM2",
+                        "6ème","5ème","4ème","3ème",
+                        "2nde A","2nde C","1ère A","1ère C","1ère D",
+                        "Terminale A","Terminale C","Terminale D",
+                        "Licence 1","Licence 2","Licence 3","Master 1","Master 2",
+                      ].map((lvl) => (
+                        <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="md:col-span-2 space-y-2">
                   <Label>Nom du kit *</Label>
