@@ -43,7 +43,7 @@ const Navbar = () => {
 
   const navItems = [
     { label: "Boutique", href: "/shop" },
-    { label: "Kit Scolaire", href: "/kits-scolaires" },
+    { label: "Kit École", href: "/kits-scolaires" },
     { label: "Actualités", href: "/actualites" },
     { label: t.nav.about, href: "/about" },
     { label: t.nav.contact, href: "/contact" },

@@ -73,7 +73,10 @@ const PartnerAccess = () => {
   const { user, loading, rolesLoading, roles } = useAuth();
   if (loading || (user && rolesLoading)) return <PageLoader />;
   if (!user) return <Auth />;
-  return roles.some((r) => ["vendor", "referent", "association", "school", "school_admin"].includes(r))
+  // Admins & modérateurs ont aussi accès aux espaces partenaires pour supervision.
+  return roles.some((r) =>
+    ["admin", "moderator", "vendor", "referent", "association", "school", "school_admin"].includes(r)
+  )
     ? <Account />
     : <Forbidden title="Espace partenaire réservé" />;
 };
