@@ -240,19 +240,21 @@ const Admin = () => {
                 const isGroupOpen = openMenuGroup === group.label;
                 const panelId = `admin-menu-mobile-${groupIndex}`;
                 return (
-                  <div
-                    key={group.label}
-                    className="group/details rounded-lg border border-border/70"
-                  >
+                  <div key={group.label} className="rounded-lg border border-border/70">
                     <button
                       type="button"
                       aria-expanded={isGroupOpen}
                       aria-controls={panelId}
-                      onClick={() => toggleMenuGroup(group.label)}
+                      onClick={() =>
+                        setOpenMenuGroup((cur) => (cur === group.label ? null : group.label))
+                      }
                       className="w-full px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground"
                     >
                       {group.label}
-                      <ChevronRight size={13} className={`transition-transform ${isGroupOpen ? "rotate-90" : ""}`} />
+                      <ChevronRight
+                        size={13}
+                        className={`transition-transform ${isGroupOpen ? "rotate-90" : ""}`}
+                      />
                     </button>
                     {isGroupOpen && (
                       <div id={panelId} className="space-y-1 px-2 pb-2 pt-1">
@@ -277,6 +279,7 @@ const Admin = () => {
                 );
               })}
             </nav>
+
           </SheetContent>
         </Sheet>
 
