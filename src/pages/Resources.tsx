@@ -11,6 +11,7 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { motion } from "framer-motion";
 import SmartImage from "@/components/SmartImage";
 
@@ -239,16 +240,22 @@ const Resources = () => {
                           variant="hero"
                           size="sm"
                           className="flex-1"
-                          asChild={!!resource.file_url}
+                          onClick={async () => {
+                            try {
+                              const { data, error } = await supabase.rpc('get_educational_content_file_url', { _content_id: resource.id });
+                              if (error) throw error;
+                              if (!data) {
+                                toast.error(resource.is_free ? "Fichier indisponible" : "Achat requis pour télécharger");
+                                return;
+                              }
+                              window.open(data as string, '_blank', 'noopener,noreferrer');
+                            } catch (e: any) {
+                              toast.error(e?.message || "Accès refusé");
+                            }
+                          }}
                         >
-                          {resource.file_url ? (
-                            <a href={resource.file_url} target="_blank" rel="noopener noreferrer">
-                              <Download className="w-3 h-3 mr-1" />
-                              {resource.is_free ? "Télécharger" : "Acheter"}
-                            </a>
-                          ) : (
-                            <span>Bientôt disponible</span>
-                          )}
+                          <Download className="w-3 h-3 mr-1" />
+                          {resource.is_free ? "Télécharger" : "Acheter"}
                         </Button>
                       </div>
                     </div>

@@ -126,6 +126,44 @@ export type Database = {
           },
         ]
       }
+      article_premium_content: {
+        Row: {
+          article_id: string
+          content_de: string | null
+          content_en: string | null
+          content_es: string | null
+          content_fr: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          article_id: string
+          content_de?: string | null
+          content_en?: string | null
+          content_es?: string | null
+          content_fr?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          article_id?: string
+          content_de?: string | null
+          content_en?: string | null
+          content_es?: string | null
+          content_fr?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_premium_content_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: true
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       article_purchases: {
         Row: {
           amount: number
@@ -807,6 +845,35 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      educational_content_files: {
+        Row: {
+          content_id: string
+          created_at: string
+          file_url: string
+          updated_at: string
+        }
+        Insert: {
+          content_id: string
+          created_at?: string
+          file_url: string
+          updated_at?: string
+        }
+        Update: {
+          content_id?: string
+          created_at?: string
+          file_url?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "educational_content_files_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: true
+            referencedRelation: "educational_content"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_campaign_logs: {
         Row: {
@@ -3046,6 +3113,15 @@ export type Database = {
           content_fr: string
         }[]
       }
+      get_article_premium_content: {
+        Args: { _article_id: string }
+        Returns: {
+          content_de: string
+          content_en: string
+          content_es: string
+          content_fr: string
+        }[]
+      }
       get_campaign_analytics: {
         Args: never
         Returns: {
@@ -3108,6 +3184,10 @@ export type Database = {
           pending_pickup: number
           total_assigned: number
         }[]
+      }
+      get_educational_content_file_url: {
+        Args: { _content_id: string }
+        Returns: string
       }
       get_email_provider_daily_stats: {
         Args: never

@@ -223,11 +223,39 @@ serve(async (req) => {
 
     console.log('Payment updated:', paymentRecord.id, 'status:', newStatus);
 
-    // Update order status if payment completed
+    // Update order status if payment completed AND amount matches authoritative order total
     if (newStatus === 'completed' && paymentRecord.order_id) {
+      const { data: orderRow } = await supabase
+        .from('orders')
+        .select('total_amount, status')
+        .eq('id', paymentRecord.order_id)
+        .single();
+
+      const paidAmount = Number(amount ?? paymentRecord.amount ?? 0);
+      const orderTotal = Number(orderRow?.total_amount ?? 0);
+
+      if (!orderRow || paidAmount + 1 < orderTotal) {
+        console.error('[Security] Payment amount below authoritative order total', {
+          paidAmount, orderTotal, orderId: paymentRecord.order_id,
+        });
+        await supabase.from('payments').update({
+          status: 'failed',
+          metadata: {
+            ...paymentRecord.metadata,
+            security_reject: 'amount_mismatch',
+            paid_amount: paidAmount,
+            order_total: orderTotal,
+          },
+        }).eq('id', paymentRecord.id);
+        return new Response(
+          JSON.stringify({ received: true, error: 'Amount mismatch — payment rejected' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       await supabase
         .from('orders')
-        .update({ 
+        .update({
           status: 'confirmed',
           payment_reference: transactionId
         })

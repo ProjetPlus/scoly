@@ -240,7 +240,7 @@ const ArticleDetail = () => {
 
     setHasLiked(!!likeData);
 
-    // Check if purchased (for premium articles)
+    // Check if purchased (for premium articles) and load protected content if authorized
     if (article.is_premium) {
       const { data: purchaseData } = await supabase
         .from('article_purchases')
@@ -248,9 +248,25 @@ const ArticleDetail = () => {
         .eq('article_id', article.id)
         .eq('user_id', user.id)
         .eq('status', 'completed')
-        .single();
+        .maybeSingle();
 
-      setHasPurchased(!!purchaseData);
+      const purchased = !!purchaseData;
+      setHasPurchased(purchased);
+
+      const isAuthor = article.author_id === user.id;
+      if (purchased || isAuthor) {
+        const { data: premium } = await supabase
+          .rpc('get_article_premium_content', { _article_id: article.id });
+        if (premium && premium.length > 0) {
+          setArticle((prev) => prev ? {
+            ...prev,
+            content_fr: premium[0].content_fr,
+            content_en: premium[0].content_en,
+            content_de: premium[0].content_de,
+            content_es: premium[0].content_es,
+          } : prev);
+        }
+      }
     }
   };
 
