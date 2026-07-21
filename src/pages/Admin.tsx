@@ -172,50 +172,6 @@ const Admin = () => {
     },
   ];
   const menuItems = menuGroups.flatMap((g) => g.items);
-  const clearCloseMenuTimer = () => {
-    if (closeMenuTimerRef.current) {
-      clearTimeout(closeMenuTimerRef.current);
-      closeMenuTimerRef.current = null;
-    }
-  };
-
-  useEffect(() => {
-    const handlePointerDown = (event: PointerEvent) => {
-      if (sidebarRef.current?.contains(event.target as Node)) return;
-      clearCloseMenuTimer();
-      setOpenMenuGroup(null);
-      setPinnedMenuGroup(null);
-    };
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      clearCloseMenuTimer();
-    };
-  }, []);
-
-  const toggleMenuGroup = (label: string) => {
-    clearCloseMenuTimer();
-    setPinnedMenuGroup((current) => {
-      const next = current === label ? null : label;
-      setOpenMenuGroup(next);
-      return next;
-    });
-  };
-
-  const handleMenuGroupEnter = (label: string) => {
-    clearCloseMenuTimer();
-    if (pinnedMenuGroup) return;
-    setOpenMenuGroup(label);
-  };
-
-  const handleSidebarLeave = () => {
-    clearCloseMenuTimer();
-    if (pinnedMenuGroup) return;
-    closeMenuTimerRef.current = setTimeout(() => {
-      setOpenMenuGroup(null);
-    }, 180);
-  };
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -227,7 +183,7 @@ const Admin = () => {
       <div className="min-h-screen flex w-full min-w-0 overflow-x-hidden">
 
 
-        {/* Sidebar - Desktop */}
+        {/* Sidebar - Desktop : hover pur CSS, zéro state React → zéro clignotement */}
         <aside
           ref={sidebarRef}
           className="w-64 shrink-0 bg-card border-r border-border hidden lg:block sticky top-0 h-screen overflow-y-auto"
@@ -237,48 +193,40 @@ const Admin = () => {
             <p className="text-xs text-muted-foreground">Menu interne</p>
           </div>
           <nav className="px-3 py-4 space-y-2">
-            {menuGroups.map((group, groupIndex) => {
-              const isGroupOpen = openMenuGroup === group.label;
-              const panelId = `admin-menu-desktop-${groupIndex}`;
-              return (
-                <div
-                  key={group.label}
-                  className="rounded-lg border border-border/60 bg-background/40"
-                >
-                  <button
-                    type="button"
-                    aria-expanded={isGroupOpen}
-                    aria-controls={panelId}
-                    onClick={() => toggleMenuGroup(group.label)}
-                    className="w-full px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between hover:text-foreground"
-                  >
-                    {group.label}
-                    <ChevronRight size={13} className={`transition-transform ${isGroupOpen ? "rotate-90" : ""}`} />
-                  </button>
-                  {isGroupOpen && (
-                    <div id={panelId} className="space-y-1 px-2 pb-2 pt-1">
-                      {group.items.map((item) => (
-                        <button
-                          type="button"
-                          key={item.id}
-                          onClick={() => handleTabChange(item.id as TabType)}
-                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
-                            activeTab === item.id
-                              ? "bg-primary text-primary-foreground"
-                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                          }`}
-                        >
-                          <item.icon size={16} />
-                          <span className="truncate">{item.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+            {menuGroups.map((group) => (
+              <div
+                key={group.label}
+                className="group/menu rounded-lg border border-border/60 bg-background/40"
+              >
+                <div className="w-full px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between cursor-default select-none">
+                  {group.label}
+                  <ChevronRight
+                    size={13}
+                    className="transition-transform group-hover/menu:rotate-90"
+                  />
                 </div>
-              );
-            })}
+                <div className="hidden group-hover/menu:block space-y-1 px-2 pb-2 pt-1">
+                  {group.items.map((item) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      onClick={() => handleTabChange(item.id as TabType)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
+                        activeTab === item.id
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      <item.icon size={16} />
+                      <span className="truncate">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
           </nav>
         </aside>
+
 
 
         {/* Mobile Menu Sheet */}
