@@ -11,6 +11,7 @@ import SEOHead from "@/components/SEOHead";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { motion } from "framer-motion";
 import SmartImage from "@/components/SmartImage";
 
