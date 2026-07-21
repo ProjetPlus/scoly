@@ -105,9 +105,7 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openMenuGroup, setOpenMenuGroup] = useState<string | null>(null);
-  const [pinnedMenuGroup, setPinnedMenuGroup] = useState<string | null>(null);
   const sidebarRef = useRef<HTMLElement | null>(null);
-  const closeMenuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const menuGroups: Array<{ label: string; items: Array<{ id: string; label: string; icon: any }> }> = [
     {
