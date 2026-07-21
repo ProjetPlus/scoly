@@ -122,7 +122,7 @@ const Admin = () => {
       label: "Catalogue & Ventes",
       items: [
         { id: "products", label: "Produits", icon: Package },
-        { id: "school_kits", label: "Kit Scolaire", icon: Package },
+        { id: "school_kits", label: "Kit École", icon: Package },
         { id: "categories", label: "Catégories", icon: FolderTree },
         { id: "orders", label: "Commandes", icon: ShoppingBag },
         { id: "payments", label: "Paiements", icon: DollarSign },
