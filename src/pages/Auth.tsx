@@ -11,7 +11,7 @@ import Logo from "@/components/Logo";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useRateLimit } from "@/hooks/useRateLimit";
-import MathCaptcha from "@/components/MathCaptcha";
+
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -26,7 +26,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [passwordStrength, setPasswordStrength] = useState<{ score: number; checks: boolean[] }>({ score: 0, checks: [] });
-  const [captchaValid, setCaptchaValid] = useState(false);
+  // Captcha retiré du portail public — réservé aux espaces internes /team et /me
 
   const { signIn, signUp, user } = useAuth();
   const { t, language } = useLanguage();
@@ -174,12 +174,7 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Check CAPTCHA
-      if (!captchaValid) {
-        toast.error("Veuillez résoudre le calcul de sécurité.");
-        setLoading(false);
-        return;
-      }
+
 
       // Check rate limit first
       const rateLimit = isLogin ? loginRateLimit : signupRateLimit;
@@ -498,9 +493,6 @@ const Auth = () => {
               </div>
             )}
 
-            {/* Math CAPTCHA */}
-            <MathCaptcha onValidChange={setCaptchaValid} />
-
             {isLogin && (
               <div className="flex items-center justify-end">
                 <button
@@ -536,7 +528,7 @@ const Auth = () => {
               </div>
             )}
 
-            <Button type="submit" variant="hero" className="w-full" disabled={loading || !captchaValid}>
+            <Button type="submit" variant="hero" className="w-full" disabled={loading}>
               {loading ? t.common.loading : isLogin ? t.auth.loginButton : t.auth.signupButton}
             </Button>
 
